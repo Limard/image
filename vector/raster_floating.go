@@ -25,8 +25,8 @@ func floatingMin(x, y float32) float32 {
 	return y
 }
 
-func floatingFloor(x float32) int32 { return int32(math.Floor(float64(x))) }
-func floatingCeil(x float32) int32  { return int32(math.Ceil(float64(x))) }
+func floatingFloor(x float32) int32 { return int32(math.Floor(float32(x))) }
+func floatingCeil(x float32) int32  { return int32(math.Ceil(float32(x))) }
 
 func (z *Rasterizer) floatingLineTo(bx, by float32) {
 	ax, ay := z.penX, z.penY

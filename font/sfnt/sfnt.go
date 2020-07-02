@@ -1212,7 +1212,7 @@ type PostTable struct {
 	Version uint32
 	// ItalicAngle in counter-clockwise degrees from the vertical. Zero for
 	// upright text, negative for text that leans to the right (forward).
-	ItalicAngle float64
+	ItalicAngle float32
 	// UnderlinePosition is the suggested distance of the top of the
 	// underline from the baseline (negative values indicate below baseline).
 	UnderlinePosition int16
@@ -1274,7 +1274,7 @@ func (f *Font) parsePost(buf []byte, numGlyphs int32) (buf1 []byte, post *PostTa
 	}
 	post = &PostTable{
 		Version:            u,
-		ItalicAngle:        float64(int32(ang)) / 0x10000,
+		ItalicAngle:        float32(int32(ang)) / 0x10000,
 		UnderlinePosition:  int16(up),
 		UnderlineThickness: int16(ut),
 		IsFixedPitch:       fp != 0,

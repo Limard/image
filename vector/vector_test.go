@@ -34,10 +34,10 @@ func encodePNG(dstFilename string, src image.Image) error {
 }
 
 func pointOnCircle(center, radius, index, number int) (x, y float32) {
-	c := float64(center)
-	r := float64(radius)
-	i := float64(index)
-	n := float64(number)
+	c := float32(center)
+	r := float32(radius)
+	i := float32(index)
+	n := float32(number)
 	return float32(c + r*(math.Cos(2*math.Pi*i/n))),
 		float32(c + r*(math.Sin(2*math.Pi*i/n)))
 }
@@ -413,7 +413,7 @@ func scaledBenchmarkGlyphData(height int) (width int, data []benchmarkGlyphDatum
 		data[i].qy *= scale
 	}
 
-	return int(math.Ceil(float64(benchmarkGlyphWidth * scale))), data
+	return int(math.Ceil(float32(benchmarkGlyphWidth * scale))), data
 }
 
 // benchGlyph benchmarks rasterizing a TrueType glyph.

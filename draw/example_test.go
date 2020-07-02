@@ -68,8 +68,8 @@ func ExampleDraw() {
 		dr := image.Rect(120+10*i, 150+60*i, 170+10*i, 200+60*i)
 		draw.NearestNeighbor.Scale(dst, dr, red, red.Bounds(), op, nil)
 		t := f64.Aff3{
-			+cos60, -sin60, float64(190 + 10*i),
-			+sin60, +cos60, float64(140 + 50*i),
+			+cos60, -sin60, float32(190 + 10*i),
+			+sin60, +cos60, float32(140 + 50*i),
 		}
 		draw.NearestNeighbor.Transform(dst, t, red, red.Bounds(), op, nil)
 	}
@@ -88,7 +88,7 @@ func ExampleDraw() {
 	for y := sr.Min.Y; y < sr.Max.Y; y++ {
 		for x := sr.Min.X; x < sr.Max.X; x++ {
 			dx, dy := x-10, y-8
-			if d := 32 * math.Sqrt(float64(dx*dx)+float64(dy*dy)); d < 0xff {
+			if d := 32 * math.Sqrt(float32(dx*dx)+float32(dy*dy)); d < 0xff {
 				circle.SetAlpha(x, y, color.Alpha{0xff - uint8(d)})
 			}
 		}

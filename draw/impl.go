@@ -8,7 +8,6 @@ import (
 	"math"
 
 	"github.com/Limard/image/math/f32"
-	"github.com/Limard/image/math/f64"
 )
 
 func (z nnInterpolator) Scale(dst Image, dr image.Rectangle, src image.Image, sr image.Rectangle, op Op, opts *Options) {
@@ -105,12 +104,12 @@ func (z nnInterpolator) Scale(dst Image, dr image.Rectangle, src image.Image, sr
 	}
 }
 
-func (z nnInterpolator) Transform(dst Image, s2d f64.Aff3, src image.Image, sr image.Rectangle, op Op, opts *Options) {
+func (z nnInterpolator) Transform(dst Image, s2d f32.Aff3, src image.Image, sr image.Rectangle, op Op, opts *Options) {
 	// Try to simplify a Transform to a Copy.
 	if s2d[0] == 1 && s2d[1] == 0 && s2d[3] == 0 && s2d[4] == 1 {
 		dx := int(s2d[2])
 		dy := int(s2d[5])
-		if float64(dx) == s2d[2] && float64(dy) == s2d[5] {
+		if float32(dx) == s2d[2] && float32(dy) == s2d[5] {
 			Copy(dst, image.Point{X: sr.Min.X + dx, Y: sr.Min.X + dy}, src, sr, op, opts)
 			return
 		}
@@ -143,8 +142,8 @@ func (z nnInterpolator) Transform(dst Image, s2d f64.Aff3, src image.Image, sr i
 	bias := transformRect(&d2s, &adr).Min
 	bias.X--
 	bias.Y--
-	d2s[2] -= float64(bias.X)
-	d2s[5] -= float64(bias.Y)
+	d2s[2] -= float32(bias.X)
+	d2s[5] -= float32(bias.Y)
 	// Make adr relative to dr.Min.
 	adr = adr.Sub(dr.Min)
 	// sr is the source pixels. If it extends beyond the src bounds,
@@ -626,12 +625,12 @@ func (nnInterpolator) scale_Image_Image_Src(dst Image, dr, adr image.Rectangle, 
 	}
 }
 
-func (nnInterpolator) transform_RGBA_Gray_Src(dst *image.RGBA, dr, adr image.Rectangle, d2s *f64.Aff3, src *image.Gray, sr image.Rectangle, bias image.Point, opts *Options) {
+func (nnInterpolator) transform_RGBA_Gray_Src(dst *image.RGBA, dr, adr image.Rectangle, d2s *f32.Aff3, src *image.Gray, sr image.Rectangle, bias image.Point, opts *Options) {
 	for dy := int32(adr.Min.Y); dy < int32(adr.Max.Y); dy++ {
-		dyf := float64(dr.Min.Y+int(dy)) + 0.5
+		dyf := float32(dr.Min.Y+int(dy)) + 0.5
 		d := (dr.Min.Y+int(dy)-dst.Rect.Min.Y)*dst.Stride + (dr.Min.X+adr.Min.X-dst.Rect.Min.X)*4
 		for dx := int32(adr.Min.X); dx < int32(adr.Max.X); dx, d = dx+1, d+4 {
-			dxf := float64(dr.Min.X+int(dx)) + 0.5
+			dxf := float32(dr.Min.X+int(dx)) + 0.5
 			sx0 := int(d2s[0]*dxf+d2s[1]*dyf+d2s[2]) + bias.X
 			sy0 := int(d2s[3]*dxf+d2s[4]*dyf+d2s[5]) + bias.Y
 			if !(image.Point{sx0, sy0}).In(sr) {
@@ -648,12 +647,12 @@ func (nnInterpolator) transform_RGBA_Gray_Src(dst *image.RGBA, dr, adr image.Rec
 	}
 }
 
-func (nnInterpolator) transform_RGBA_NRGBA_Over(dst *image.RGBA, dr, adr image.Rectangle, d2s *f64.Aff3, src *image.NRGBA, sr image.Rectangle, bias image.Point, opts *Options) {
+func (nnInterpolator) transform_RGBA_NRGBA_Over(dst *image.RGBA, dr, adr image.Rectangle, d2s *f32.Aff3, src *image.NRGBA, sr image.Rectangle, bias image.Point, opts *Options) {
 	for dy := int32(adr.Min.Y); dy < int32(adr.Max.Y); dy++ {
-		dyf := float64(dr.Min.Y+int(dy)) + 0.5
+		dyf := float32(dr.Min.Y+int(dy)) + 0.5
 		d := (dr.Min.Y+int(dy)-dst.Rect.Min.Y)*dst.Stride + (dr.Min.X+adr.Min.X-dst.Rect.Min.X)*4
 		for dx := int32(adr.Min.X); dx < int32(adr.Max.X); dx, d = dx+1, d+4 {
-			dxf := float64(dr.Min.X+int(dx)) + 0.5
+			dxf := float32(dr.Min.X+int(dx)) + 0.5
 			sx0 := int(d2s[0]*dxf+d2s[1]*dyf+d2s[2]) + bias.X
 			sy0 := int(d2s[3]*dxf+d2s[4]*dyf+d2s[5]) + bias.Y
 			if !(image.Point{sx0, sy0}).In(sr) {
@@ -673,12 +672,12 @@ func (nnInterpolator) transform_RGBA_NRGBA_Over(dst *image.RGBA, dr, adr image.R
 	}
 }
 
-func (nnInterpolator) transform_RGBA_NRGBA_Src(dst *image.RGBA, dr, adr image.Rectangle, d2s *f64.Aff3, src *image.NRGBA, sr image.Rectangle, bias image.Point, opts *Options) {
+func (nnInterpolator) transform_RGBA_NRGBA_Src(dst *image.RGBA, dr, adr image.Rectangle, d2s *f32.Aff3, src *image.NRGBA, sr image.Rectangle, bias image.Point, opts *Options) {
 	for dy := int32(adr.Min.Y); dy < int32(adr.Max.Y); dy++ {
-		dyf := float64(dr.Min.Y+int(dy)) + 0.5
+		dyf := float32(dr.Min.Y+int(dy)) + 0.5
 		d := (dr.Min.Y+int(dy)-dst.Rect.Min.Y)*dst.Stride + (dr.Min.X+adr.Min.X-dst.Rect.Min.X)*4
 		for dx := int32(adr.Min.X); dx < int32(adr.Max.X); dx, d = dx+1, d+4 {
-			dxf := float64(dr.Min.X+int(dx)) + 0.5
+			dxf := float32(dr.Min.X+int(dx)) + 0.5
 			sx0 := int(d2s[0]*dxf+d2s[1]*dyf+d2s[2]) + bias.X
 			sy0 := int(d2s[3]*dxf+d2s[4]*dyf+d2s[5]) + bias.Y
 			if !(image.Point{sx0, sy0}).In(sr) {
@@ -697,12 +696,12 @@ func (nnInterpolator) transform_RGBA_NRGBA_Src(dst *image.RGBA, dr, adr image.Re
 	}
 }
 
-func (nnInterpolator) transform_RGBA_RGBA_Over(dst *image.RGBA, dr, adr image.Rectangle, d2s *f64.Aff3, src *image.RGBA, sr image.Rectangle, bias image.Point, opts *Options) {
+func (nnInterpolator) transform_RGBA_RGBA_Over(dst *image.RGBA, dr, adr image.Rectangle, d2s *f32.Aff3, src *image.RGBA, sr image.Rectangle, bias image.Point, opts *Options) {
 	for dy := int32(adr.Min.Y); dy < int32(adr.Max.Y); dy++ {
-		dyf := float64(dr.Min.Y+int(dy)) + 0.5
+		dyf := float32(dr.Min.Y+int(dy)) + 0.5
 		d := (dr.Min.Y+int(dy)-dst.Rect.Min.Y)*dst.Stride + (dr.Min.X+adr.Min.X-dst.Rect.Min.X)*4
 		for dx := int32(adr.Min.X); dx < int32(adr.Max.X); dx, d = dx+1, d+4 {
-			dxf := float64(dr.Min.X+int(dx)) + 0.5
+			dxf := float32(dr.Min.X+int(dx)) + 0.5
 			sx0 := int(d2s[0]*dxf+d2s[1]*dyf+d2s[2]) + bias.X
 			sy0 := int(d2s[3]*dxf+d2s[4]*dyf+d2s[5]) + bias.Y
 			if !(image.Point{sx0, sy0}).In(sr) {
@@ -722,12 +721,12 @@ func (nnInterpolator) transform_RGBA_RGBA_Over(dst *image.RGBA, dr, adr image.Re
 	}
 }
 
-func (nnInterpolator) transform_RGBA_RGBA_Src(dst *image.RGBA, dr, adr image.Rectangle, d2s *f64.Aff3, src *image.RGBA, sr image.Rectangle, bias image.Point, opts *Options) {
+func (nnInterpolator) transform_RGBA_RGBA_Src(dst *image.RGBA, dr, adr image.Rectangle, d2s *f32.Aff3, src *image.RGBA, sr image.Rectangle, bias image.Point, opts *Options) {
 	for dy := int32(adr.Min.Y); dy < int32(adr.Max.Y); dy++ {
-		dyf := float64(dr.Min.Y+int(dy)) + 0.5
+		dyf := float32(dr.Min.Y+int(dy)) + 0.5
 		d := (dr.Min.Y+int(dy)-dst.Rect.Min.Y)*dst.Stride + (dr.Min.X+adr.Min.X-dst.Rect.Min.X)*4
 		for dx := int32(adr.Min.X); dx < int32(adr.Max.X); dx, d = dx+1, d+4 {
-			dxf := float64(dr.Min.X+int(dx)) + 0.5
+			dxf := float32(dr.Min.X+int(dx)) + 0.5
 			sx0 := int(d2s[0]*dxf+d2s[1]*dyf+d2s[2]) + bias.X
 			sy0 := int(d2s[3]*dxf+d2s[4]*dyf+d2s[5]) + bias.Y
 			if !(image.Point{sx0, sy0}).In(sr) {
@@ -746,12 +745,12 @@ func (nnInterpolator) transform_RGBA_RGBA_Src(dst *image.RGBA, dr, adr image.Rec
 	}
 }
 
-func (nnInterpolator) transform_RGBA_YCbCr444_Src(dst *image.RGBA, dr, adr image.Rectangle, d2s *f64.Aff3, src *image.YCbCr, sr image.Rectangle, bias image.Point, opts *Options) {
+func (nnInterpolator) transform_RGBA_YCbCr444_Src(dst *image.RGBA, dr, adr image.Rectangle, d2s *f32.Aff3, src *image.YCbCr, sr image.Rectangle, bias image.Point, opts *Options) {
 	for dy := int32(adr.Min.Y); dy < int32(adr.Max.Y); dy++ {
-		dyf := float64(dr.Min.Y+int(dy)) + 0.5
+		dyf := float32(dr.Min.Y+int(dy)) + 0.5
 		d := (dr.Min.Y+int(dy)-dst.Rect.Min.Y)*dst.Stride + (dr.Min.X+adr.Min.X-dst.Rect.Min.X)*4
 		for dx := int32(adr.Min.X); dx < int32(adr.Max.X); dx, d = dx+1, d+4 {
-			dxf := float64(dr.Min.X+int(dx)) + 0.5
+			dxf := float32(dr.Min.X+int(dx)) + 0.5
 			sx0 := int(d2s[0]*dxf+d2s[1]*dyf+d2s[2]) + bias.X
 			sy0 := int(d2s[3]*dxf+d2s[4]*dyf+d2s[5]) + bias.Y
 			if !(image.Point{sx0, sy0}).In(sr) {
@@ -790,12 +789,12 @@ func (nnInterpolator) transform_RGBA_YCbCr444_Src(dst *image.RGBA, dr, adr image
 	}
 }
 
-func (nnInterpolator) transform_RGBA_YCbCr422_Src(dst *image.RGBA, dr, adr image.Rectangle, d2s *f64.Aff3, src *image.YCbCr, sr image.Rectangle, bias image.Point, opts *Options) {
+func (nnInterpolator) transform_RGBA_YCbCr422_Src(dst *image.RGBA, dr, adr image.Rectangle, d2s *f32.Aff3, src *image.YCbCr, sr image.Rectangle, bias image.Point, opts *Options) {
 	for dy := int32(adr.Min.Y); dy < int32(adr.Max.Y); dy++ {
-		dyf := float64(dr.Min.Y+int(dy)) + 0.5
+		dyf := float32(dr.Min.Y+int(dy)) + 0.5
 		d := (dr.Min.Y+int(dy)-dst.Rect.Min.Y)*dst.Stride + (dr.Min.X+adr.Min.X-dst.Rect.Min.X)*4
 		for dx := int32(adr.Min.X); dx < int32(adr.Max.X); dx, d = dx+1, d+4 {
-			dxf := float64(dr.Min.X+int(dx)) + 0.5
+			dxf := float32(dr.Min.X+int(dx)) + 0.5
 			sx0 := int(d2s[0]*dxf+d2s[1]*dyf+d2s[2]) + bias.X
 			sy0 := int(d2s[3]*dxf+d2s[4]*dyf+d2s[5]) + bias.Y
 			if !(image.Point{sx0, sy0}).In(sr) {
@@ -834,12 +833,12 @@ func (nnInterpolator) transform_RGBA_YCbCr422_Src(dst *image.RGBA, dr, adr image
 	}
 }
 
-func (nnInterpolator) transform_RGBA_YCbCr420_Src(dst *image.RGBA, dr, adr image.Rectangle, d2s *f64.Aff3, src *image.YCbCr, sr image.Rectangle, bias image.Point, opts *Options) {
+func (nnInterpolator) transform_RGBA_YCbCr420_Src(dst *image.RGBA, dr, adr image.Rectangle, d2s *f32.Aff3, src *image.YCbCr, sr image.Rectangle, bias image.Point, opts *Options) {
 	for dy := int32(adr.Min.Y); dy < int32(adr.Max.Y); dy++ {
-		dyf := float64(dr.Min.Y+int(dy)) + 0.5
+		dyf := float32(dr.Min.Y+int(dy)) + 0.5
 		d := (dr.Min.Y+int(dy)-dst.Rect.Min.Y)*dst.Stride + (dr.Min.X+adr.Min.X-dst.Rect.Min.X)*4
 		for dx := int32(adr.Min.X); dx < int32(adr.Max.X); dx, d = dx+1, d+4 {
-			dxf := float64(dr.Min.X+int(dx)) + 0.5
+			dxf := float32(dr.Min.X+int(dx)) + 0.5
 			sx0 := int(d2s[0]*dxf+d2s[1]*dyf+d2s[2]) + bias.X
 			sy0 := int(d2s[3]*dxf+d2s[4]*dyf+d2s[5]) + bias.Y
 			if !(image.Point{sx0, sy0}).In(sr) {
@@ -878,12 +877,12 @@ func (nnInterpolator) transform_RGBA_YCbCr420_Src(dst *image.RGBA, dr, adr image
 	}
 }
 
-func (nnInterpolator) transform_RGBA_YCbCr440_Src(dst *image.RGBA, dr, adr image.Rectangle, d2s *f64.Aff3, src *image.YCbCr, sr image.Rectangle, bias image.Point, opts *Options) {
+func (nnInterpolator) transform_RGBA_YCbCr440_Src(dst *image.RGBA, dr, adr image.Rectangle, d2s *f32.Aff3, src *image.YCbCr, sr image.Rectangle, bias image.Point, opts *Options) {
 	for dy := int32(adr.Min.Y); dy < int32(adr.Max.Y); dy++ {
-		dyf := float64(dr.Min.Y+int(dy)) + 0.5
+		dyf := float32(dr.Min.Y+int(dy)) + 0.5
 		d := (dr.Min.Y+int(dy)-dst.Rect.Min.Y)*dst.Stride + (dr.Min.X+adr.Min.X-dst.Rect.Min.X)*4
 		for dx := int32(adr.Min.X); dx < int32(adr.Max.X); dx, d = dx+1, d+4 {
-			dxf := float64(dr.Min.X+int(dx)) + 0.5
+			dxf := float32(dr.Min.X+int(dx)) + 0.5
 			sx0 := int(d2s[0]*dxf+d2s[1]*dyf+d2s[2]) + bias.X
 			sy0 := int(d2s[3]*dxf+d2s[4]*dyf+d2s[5]) + bias.Y
 			if !(image.Point{sx0, sy0}).In(sr) {
@@ -922,12 +921,12 @@ func (nnInterpolator) transform_RGBA_YCbCr440_Src(dst *image.RGBA, dr, adr image
 	}
 }
 
-func (nnInterpolator) transform_RGBA_Image_Over(dst *image.RGBA, dr, adr image.Rectangle, d2s *f64.Aff3, src image.Image, sr image.Rectangle, bias image.Point, opts *Options) {
+func (nnInterpolator) transform_RGBA_Image_Over(dst *image.RGBA, dr, adr image.Rectangle, d2s *f32.Aff3, src image.Image, sr image.Rectangle, bias image.Point, opts *Options) {
 	for dy := int32(adr.Min.Y); dy < int32(adr.Max.Y); dy++ {
-		dyf := float64(dr.Min.Y+int(dy)) + 0.5
+		dyf := float32(dr.Min.Y+int(dy)) + 0.5
 		d := (dr.Min.Y+int(dy)-dst.Rect.Min.Y)*dst.Stride + (dr.Min.X+adr.Min.X-dst.Rect.Min.X)*4
 		for dx := int32(adr.Min.X); dx < int32(adr.Max.X); dx, d = dx+1, d+4 {
-			dxf := float64(dr.Min.X+int(dx)) + 0.5
+			dxf := float32(dr.Min.X+int(dx)) + 0.5
 			sx0 := int(d2s[0]*dxf+d2s[1]*dyf+d2s[2]) + bias.X
 			sy0 := int(d2s[3]*dxf+d2s[4]*dyf+d2s[5]) + bias.Y
 			if !(image.Point{sx0, sy0}).In(sr) {
@@ -943,12 +942,12 @@ func (nnInterpolator) transform_RGBA_Image_Over(dst *image.RGBA, dr, adr image.R
 	}
 }
 
-func (nnInterpolator) transform_RGBA_Image_Src(dst *image.RGBA, dr, adr image.Rectangle, d2s *f64.Aff3, src image.Image, sr image.Rectangle, bias image.Point, opts *Options) {
+func (nnInterpolator) transform_RGBA_Image_Src(dst *image.RGBA, dr, adr image.Rectangle, d2s *f32.Aff3, src image.Image, sr image.Rectangle, bias image.Point, opts *Options) {
 	for dy := int32(adr.Min.Y); dy < int32(adr.Max.Y); dy++ {
-		dyf := float64(dr.Min.Y+int(dy)) + 0.5
+		dyf := float32(dr.Min.Y+int(dy)) + 0.5
 		d := (dr.Min.Y+int(dy)-dst.Rect.Min.Y)*dst.Stride + (dr.Min.X+adr.Min.X-dst.Rect.Min.X)*4
 		for dx := int32(adr.Min.X); dx < int32(adr.Max.X); dx, d = dx+1, d+4 {
-			dxf := float64(dr.Min.X+int(dx)) + 0.5
+			dxf := float32(dr.Min.X+int(dx)) + 0.5
 			sx0 := int(d2s[0]*dxf+d2s[1]*dyf+d2s[2]) + bias.X
 			sy0 := int(d2s[3]*dxf+d2s[4]*dyf+d2s[5]) + bias.Y
 			if !(image.Point{sx0, sy0}).In(sr) {
@@ -963,15 +962,15 @@ func (nnInterpolator) transform_RGBA_Image_Src(dst *image.RGBA, dr, adr image.Re
 	}
 }
 
-func (nnInterpolator) transform_Image_Image_Over(dst Image, dr, adr image.Rectangle, d2s *f64.Aff3, src image.Image, sr image.Rectangle, bias image.Point, opts *Options) {
+func (nnInterpolator) transform_Image_Image_Over(dst Image, dr, adr image.Rectangle, d2s *f32.Aff3, src image.Image, sr image.Rectangle, bias image.Point, opts *Options) {
 	srcMask, smp := opts.SrcMask, opts.SrcMaskP
 	dstMask, dmp := opts.DstMask, opts.DstMaskP
 	dstColorRGBA64 := &color.RGBA64{}
 	dstColor := color.Color(dstColorRGBA64)
 	for dy := int32(adr.Min.Y); dy < int32(adr.Max.Y); dy++ {
-		dyf := float64(dr.Min.Y+int(dy)) + 0.5
+		dyf := float32(dr.Min.Y+int(dy)) + 0.5
 		for dx := int32(adr.Min.X); dx < int32(adr.Max.X); dx++ {
-			dxf := float64(dr.Min.X+int(dx)) + 0.5
+			dxf := float32(dr.Min.X+int(dx)) + 0.5
 			sx0 := int(d2s[0]*dxf+d2s[1]*dyf+d2s[2]) + bias.X
 			sy0 := int(d2s[3]*dxf+d2s[4]*dyf+d2s[5]) + bias.Y
 			if !(image.Point{sx0, sy0}).In(sr) {
@@ -1003,15 +1002,15 @@ func (nnInterpolator) transform_Image_Image_Over(dst Image, dr, adr image.Rectan
 	}
 }
 
-func (nnInterpolator) transform_Image_Image_Src(dst Image, dr, adr image.Rectangle, d2s *f64.Aff3, src image.Image, sr image.Rectangle, bias image.Point, opts *Options) {
+func (nnInterpolator) transform_Image_Image_Src(dst Image, dr, adr image.Rectangle, d2s *f32.Aff3, src image.Image, sr image.Rectangle, bias image.Point, opts *Options) {
 	srcMask, smp := opts.SrcMask, opts.SrcMaskP
 	dstMask, dmp := opts.DstMask, opts.DstMaskP
 	dstColorRGBA64 := &color.RGBA64{}
 	dstColor := color.Color(dstColorRGBA64)
 	for dy := int32(adr.Min.Y); dy < int32(adr.Max.Y); dy++ {
-		dyf := float64(dr.Min.Y+int(dy)) + 0.5
+		dyf := float32(dr.Min.Y+int(dy)) + 0.5
 		for dx := int32(adr.Min.X); dx < int32(adr.Max.X); dx++ {
-			dxf := float64(dr.Min.X+int(dx)) + 0.5
+			dxf := float32(dr.Min.X+int(dx)) + 0.5
 			sx0 := int(d2s[0]*dxf+d2s[1]*dyf+d2s[2]) + bias.X
 			sy0 := int(d2s[3]*dxf+d2s[4]*dyf+d2s[5]) + bias.Y
 			if !(image.Point{sx0, sy0}).In(sr) {
@@ -1143,12 +1142,12 @@ func (z ablInterpolator) Scale(dst Image, dr image.Rectangle, src image.Image, s
 	}
 }
 
-func (z ablInterpolator) Transform(dst Image, s2d f64.Aff3, src image.Image, sr image.Rectangle, op Op, opts *Options) {
+func (z ablInterpolator) Transform(dst Image, s2d f32.Aff3, src image.Image, sr image.Rectangle, op Op, opts *Options) {
 	// Try to simplify a Transform to a Copy.
 	if s2d[0] == 1 && s2d[1] == 0 && s2d[3] == 0 && s2d[4] == 1 {
 		dx := int(s2d[2])
 		dy := int(s2d[5])
-		if float64(dx) == s2d[2] && float64(dy) == s2d[5] {
+		if float32(dx) == s2d[2] && float32(dy) == s2d[5] {
 			Copy(dst, image.Point{X: sr.Min.X + dx, Y: sr.Min.X + dy}, src, sr, op, opts)
 			return
 		}
@@ -1181,8 +1180,8 @@ func (z ablInterpolator) Transform(dst Image, s2d f64.Aff3, src image.Image, sr 
 	bias := transformRect(&d2s, &adr).Min
 	bias.X--
 	bias.Y--
-	d2s[2] -= float64(bias.X)
-	d2s[5] -= float64(bias.Y)
+	d2s[2] -= float32(bias.X)
+	d2s[5] -= float32(bias.Y)
 	// Make adr relative to dr.Min.
 	adr = adr.Sub(dr.Min)
 	// sr is the source pixels. If it extends beyond the src bounds,
@@ -1257,17 +1256,17 @@ func (z ablInterpolator) Transform(dst Image, s2d f64.Aff3, src image.Image, sr 
 func (ablInterpolator) scale_RGBA_Gray_Src(dst *image.RGBA, dr, adr image.Rectangle, src *image.Gray, sr image.Rectangle, opts *Options) {
 	sw := int32(sr.Dx())
 	sh := int32(sr.Dy())
-	yscale := float64(sh) / float64(dr.Dy())
-	xscale := float64(sw) / float64(dr.Dx())
+	yscale := float32(sh) / float32(dr.Dy())
+	xscale := float32(sw) / float32(dr.Dx())
 	swMinus1, shMinus1 := sw-1, sh-1
 
 	for dy := int32(adr.Min.Y); dy < int32(adr.Max.Y); dy++ {
-		sy := (float64(dy)+0.5)*yscale - 0.5
+		sy := (float32(dy)+0.5)*yscale - 0.5
 		// If sy < 0, we will clamp sy0 to 0 anyway, so it doesn't matter if
 		// we say int32(sy) instead of int32(math.Floor(sy)). Similarly for
 		// sx, below.
 		sy0 := int32(sy)
-		yFrac0 := sy - float64(sy0)
+		yFrac0 := sy - float32(sy0)
 		yFrac1 := 1 - yFrac0
 		sy1 := sy0 + 1
 		if sy < 0 {
@@ -1280,9 +1279,9 @@ func (ablInterpolator) scale_RGBA_Gray_Src(dst *image.RGBA, dr, adr image.Rectan
 		d := (dr.Min.Y+int(dy)-dst.Rect.Min.Y)*dst.Stride + (dr.Min.X+adr.Min.X-dst.Rect.Min.X)*4
 
 		for dx := int32(adr.Min.X); dx < int32(adr.Max.X); dx, d = dx+1, d+4 {
-			sx := (float64(dx)+0.5)*xscale - 0.5
+			sx := (float32(dx)+0.5)*xscale - 0.5
 			sx0 := int32(sx)
-			xFrac0 := sx - float64(sx0)
+			xFrac0 := sx - float32(sx0)
 			xFrac1 := 1 - xFrac0
 			sx1 := sx0 + 1
 			if sx < 0 {
@@ -1295,17 +1294,17 @@ func (ablInterpolator) scale_RGBA_Gray_Src(dst *image.RGBA, dr, adr image.Rectan
 
 			s00i := (sr.Min.Y+int(sy0)-src.Rect.Min.Y)*src.Stride + (sr.Min.X + int(sx0) - src.Rect.Min.X)
 			s00ru := uint32(src.Pix[s00i]) * 0x101
-			s00r := float64(s00ru)
+			s00r := float32(s00ru)
 			s10i := (sr.Min.Y+int(sy0)-src.Rect.Min.Y)*src.Stride + (sr.Min.X + int(sx1) - src.Rect.Min.X)
 			s10ru := uint32(src.Pix[s10i]) * 0x101
-			s10r := float64(s10ru)
+			s10r := float32(s10ru)
 			s10r = xFrac1*s00r + xFrac0*s10r
 			s01i := (sr.Min.Y+int(sy1)-src.Rect.Min.Y)*src.Stride + (sr.Min.X + int(sx0) - src.Rect.Min.X)
 			s01ru := uint32(src.Pix[s01i]) * 0x101
-			s01r := float64(s01ru)
+			s01r := float32(s01ru)
 			s11i := (sr.Min.Y+int(sy1)-src.Rect.Min.Y)*src.Stride + (sr.Min.X + int(sx1) - src.Rect.Min.X)
 			s11ru := uint32(src.Pix[s11i]) * 0x101
-			s11r := float64(s11ru)
+			s11r := float32(s11ru)
 			s11r = xFrac1*s01r + xFrac0*s11r
 			s11r = yFrac1*s10r + yFrac0*s11r
 			pr := uint32(s11r)
@@ -1321,17 +1320,17 @@ func (ablInterpolator) scale_RGBA_Gray_Src(dst *image.RGBA, dr, adr image.Rectan
 func (ablInterpolator) scale_RGBA_NRGBA_Over(dst *image.RGBA, dr, adr image.Rectangle, src *image.NRGBA, sr image.Rectangle, opts *Options) {
 	sw := int32(sr.Dx())
 	sh := int32(sr.Dy())
-	yscale := float64(sh) / float64(dr.Dy())
-	xscale := float64(sw) / float64(dr.Dx())
+	yscale := float32(sh) / float32(dr.Dy())
+	xscale := float32(sw) / float32(dr.Dx())
 	swMinus1, shMinus1 := sw-1, sh-1
 
 	for dy := int32(adr.Min.Y); dy < int32(adr.Max.Y); dy++ {
-		sy := (float64(dy)+0.5)*yscale - 0.5
+		sy := (float32(dy)+0.5)*yscale - 0.5
 		// If sy < 0, we will clamp sy0 to 0 anyway, so it doesn't matter if
 		// we say int32(sy) instead of int32(math.Floor(sy)). Similarly for
 		// sx, below.
 		sy0 := int32(sy)
-		yFrac0 := sy - float64(sy0)
+		yFrac0 := sy - float32(sy0)
 		yFrac1 := 1 - yFrac0
 		sy1 := sy0 + 1
 		if sy < 0 {
@@ -1344,9 +1343,9 @@ func (ablInterpolator) scale_RGBA_NRGBA_Over(dst *image.RGBA, dr, adr image.Rect
 		d := (dr.Min.Y+int(dy)-dst.Rect.Min.Y)*dst.Stride + (dr.Min.X+adr.Min.X-dst.Rect.Min.X)*4
 
 		for dx := int32(adr.Min.X); dx < int32(adr.Max.X); dx, d = dx+1, d+4 {
-			sx := (float64(dx)+0.5)*xscale - 0.5
+			sx := (float32(dx)+0.5)*xscale - 0.5
 			sx0 := int32(sx)
-			xFrac0 := sx - float64(sx0)
+			xFrac0 := sx - float32(sx0)
 			xFrac1 := 1 - xFrac0
 			sx1 := sx0 + 1
 			if sx < 0 {
@@ -1362,19 +1361,19 @@ func (ablInterpolator) scale_RGBA_NRGBA_Over(dst *image.RGBA, dr, adr image.Rect
 			s00ru := uint32(src.Pix[s00i+0]) * s00au / 0xff
 			s00gu := uint32(src.Pix[s00i+1]) * s00au / 0xff
 			s00bu := uint32(src.Pix[s00i+2]) * s00au / 0xff
-			s00r := float64(s00ru)
-			s00g := float64(s00gu)
-			s00b := float64(s00bu)
-			s00a := float64(s00au)
+			s00r := float32(s00ru)
+			s00g := float32(s00gu)
+			s00b := float32(s00bu)
+			s00a := float32(s00au)
 			s10i := (sr.Min.Y+int(sy0)-src.Rect.Min.Y)*src.Stride + (sr.Min.X+int(sx1)-src.Rect.Min.X)*4
 			s10au := uint32(src.Pix[s10i+3]) * 0x101
 			s10ru := uint32(src.Pix[s10i+0]) * s10au / 0xff
 			s10gu := uint32(src.Pix[s10i+1]) * s10au / 0xff
 			s10bu := uint32(src.Pix[s10i+2]) * s10au / 0xff
-			s10r := float64(s10ru)
-			s10g := float64(s10gu)
-			s10b := float64(s10bu)
-			s10a := float64(s10au)
+			s10r := float32(s10ru)
+			s10g := float32(s10gu)
+			s10b := float32(s10bu)
+			s10a := float32(s10au)
 			s10r = xFrac1*s00r + xFrac0*s10r
 			s10g = xFrac1*s00g + xFrac0*s10g
 			s10b = xFrac1*s00b + xFrac0*s10b
@@ -1384,19 +1383,19 @@ func (ablInterpolator) scale_RGBA_NRGBA_Over(dst *image.RGBA, dr, adr image.Rect
 			s01ru := uint32(src.Pix[s01i+0]) * s01au / 0xff
 			s01gu := uint32(src.Pix[s01i+1]) * s01au / 0xff
 			s01bu := uint32(src.Pix[s01i+2]) * s01au / 0xff
-			s01r := float64(s01ru)
-			s01g := float64(s01gu)
-			s01b := float64(s01bu)
-			s01a := float64(s01au)
+			s01r := float32(s01ru)
+			s01g := float32(s01gu)
+			s01b := float32(s01bu)
+			s01a := float32(s01au)
 			s11i := (sr.Min.Y+int(sy1)-src.Rect.Min.Y)*src.Stride + (sr.Min.X+int(sx1)-src.Rect.Min.X)*4
 			s11au := uint32(src.Pix[s11i+3]) * 0x101
 			s11ru := uint32(src.Pix[s11i+0]) * s11au / 0xff
 			s11gu := uint32(src.Pix[s11i+1]) * s11au / 0xff
 			s11bu := uint32(src.Pix[s11i+2]) * s11au / 0xff
-			s11r := float64(s11ru)
-			s11g := float64(s11gu)
-			s11b := float64(s11bu)
-			s11a := float64(s11au)
+			s11r := float32(s11ru)
+			s11g := float32(s11gu)
+			s11b := float32(s11bu)
+			s11a := float32(s11au)
 			s11r = xFrac1*s01r + xFrac0*s11r
 			s11g = xFrac1*s01g + xFrac0*s11g
 			s11b = xFrac1*s01b + xFrac0*s11b
@@ -1421,17 +1420,17 @@ func (ablInterpolator) scale_RGBA_NRGBA_Over(dst *image.RGBA, dr, adr image.Rect
 func (ablInterpolator) scale_RGBA_NRGBA_Src(dst *image.RGBA, dr, adr image.Rectangle, src *image.NRGBA, sr image.Rectangle, opts *Options) {
 	sw := int32(sr.Dx())
 	sh := int32(sr.Dy())
-	yscale := float64(sh) / float64(dr.Dy())
-	xscale := float64(sw) / float64(dr.Dx())
+	yscale := float32(sh) / float32(dr.Dy())
+	xscale := float32(sw) / float32(dr.Dx())
 	swMinus1, shMinus1 := sw-1, sh-1
 
 	for dy := int32(adr.Min.Y); dy < int32(adr.Max.Y); dy++ {
-		sy := (float64(dy)+0.5)*yscale - 0.5
+		sy := (float32(dy)+0.5)*yscale - 0.5
 		// If sy < 0, we will clamp sy0 to 0 anyway, so it doesn't matter if
 		// we say int32(sy) instead of int32(math.Floor(sy)). Similarly for
 		// sx, below.
 		sy0 := int32(sy)
-		yFrac0 := sy - float64(sy0)
+		yFrac0 := sy - float32(sy0)
 		yFrac1 := 1 - yFrac0
 		sy1 := sy0 + 1
 		if sy < 0 {
@@ -1444,9 +1443,9 @@ func (ablInterpolator) scale_RGBA_NRGBA_Src(dst *image.RGBA, dr, adr image.Recta
 		d := (dr.Min.Y+int(dy)-dst.Rect.Min.Y)*dst.Stride + (dr.Min.X+adr.Min.X-dst.Rect.Min.X)*4
 
 		for dx := int32(adr.Min.X); dx < int32(adr.Max.X); dx, d = dx+1, d+4 {
-			sx := (float64(dx)+0.5)*xscale - 0.5
+			sx := (float32(dx)+0.5)*xscale - 0.5
 			sx0 := int32(sx)
-			xFrac0 := sx - float64(sx0)
+			xFrac0 := sx - float32(sx0)
 			xFrac1 := 1 - xFrac0
 			sx1 := sx0 + 1
 			if sx < 0 {
@@ -1462,19 +1461,19 @@ func (ablInterpolator) scale_RGBA_NRGBA_Src(dst *image.RGBA, dr, adr image.Recta
 			s00ru := uint32(src.Pix[s00i+0]) * s00au / 0xff
 			s00gu := uint32(src.Pix[s00i+1]) * s00au / 0xff
 			s00bu := uint32(src.Pix[s00i+2]) * s00au / 0xff
-			s00r := float64(s00ru)
-			s00g := float64(s00gu)
-			s00b := float64(s00bu)
-			s00a := float64(s00au)
+			s00r := float32(s00ru)
+			s00g := float32(s00gu)
+			s00b := float32(s00bu)
+			s00a := float32(s00au)
 			s10i := (sr.Min.Y+int(sy0)-src.Rect.Min.Y)*src.Stride + (sr.Min.X+int(sx1)-src.Rect.Min.X)*4
 			s10au := uint32(src.Pix[s10i+3]) * 0x101
 			s10ru := uint32(src.Pix[s10i+0]) * s10au / 0xff
 			s10gu := uint32(src.Pix[s10i+1]) * s10au / 0xff
 			s10bu := uint32(src.Pix[s10i+2]) * s10au / 0xff
-			s10r := float64(s10ru)
-			s10g := float64(s10gu)
-			s10b := float64(s10bu)
-			s10a := float64(s10au)
+			s10r := float32(s10ru)
+			s10g := float32(s10gu)
+			s10b := float32(s10bu)
+			s10a := float32(s10au)
 			s10r = xFrac1*s00r + xFrac0*s10r
 			s10g = xFrac1*s00g + xFrac0*s10g
 			s10b = xFrac1*s00b + xFrac0*s10b
@@ -1484,19 +1483,19 @@ func (ablInterpolator) scale_RGBA_NRGBA_Src(dst *image.RGBA, dr, adr image.Recta
 			s01ru := uint32(src.Pix[s01i+0]) * s01au / 0xff
 			s01gu := uint32(src.Pix[s01i+1]) * s01au / 0xff
 			s01bu := uint32(src.Pix[s01i+2]) * s01au / 0xff
-			s01r := float64(s01ru)
-			s01g := float64(s01gu)
-			s01b := float64(s01bu)
-			s01a := float64(s01au)
+			s01r := float32(s01ru)
+			s01g := float32(s01gu)
+			s01b := float32(s01bu)
+			s01a := float32(s01au)
 			s11i := (sr.Min.Y+int(sy1)-src.Rect.Min.Y)*src.Stride + (sr.Min.X+int(sx1)-src.Rect.Min.X)*4
 			s11au := uint32(src.Pix[s11i+3]) * 0x101
 			s11ru := uint32(src.Pix[s11i+0]) * s11au / 0xff
 			s11gu := uint32(src.Pix[s11i+1]) * s11au / 0xff
 			s11bu := uint32(src.Pix[s11i+2]) * s11au / 0xff
-			s11r := float64(s11ru)
-			s11g := float64(s11gu)
-			s11b := float64(s11bu)
-			s11a := float64(s11au)
+			s11r := float32(s11ru)
+			s11g := float32(s11gu)
+			s11b := float32(s11bu)
+			s11a := float32(s11au)
 			s11r = xFrac1*s01r + xFrac0*s11r
 			s11g = xFrac1*s01g + xFrac0*s11g
 			s11b = xFrac1*s01b + xFrac0*s11b
@@ -1520,17 +1519,17 @@ func (ablInterpolator) scale_RGBA_NRGBA_Src(dst *image.RGBA, dr, adr image.Recta
 func (ablInterpolator) scale_RGBA_RGBA_Over(dst *image.RGBA, dr, adr image.Rectangle, src *image.RGBA, sr image.Rectangle, opts *Options) {
 	sw := int32(sr.Dx())
 	sh := int32(sr.Dy())
-	yscale := float64(sh) / float64(dr.Dy())
-	xscale := float64(sw) / float64(dr.Dx())
+	yscale := float32(sh) / float32(dr.Dy())
+	xscale := float32(sw) / float32(dr.Dx())
 	swMinus1, shMinus1 := sw-1, sh-1
 
 	for dy := int32(adr.Min.Y); dy < int32(adr.Max.Y); dy++ {
-		sy := (float64(dy)+0.5)*yscale - 0.5
+		sy := (float32(dy)+0.5)*yscale - 0.5
 		// If sy < 0, we will clamp sy0 to 0 anyway, so it doesn't matter if
 		// we say int32(sy) instead of int32(math.Floor(sy)). Similarly for
 		// sx, below.
 		sy0 := int32(sy)
-		yFrac0 := sy - float64(sy0)
+		yFrac0 := sy - float32(sy0)
 		yFrac1 := 1 - yFrac0
 		sy1 := sy0 + 1
 		if sy < 0 {
@@ -1543,9 +1542,9 @@ func (ablInterpolator) scale_RGBA_RGBA_Over(dst *image.RGBA, dr, adr image.Recta
 		d := (dr.Min.Y+int(dy)-dst.Rect.Min.Y)*dst.Stride + (dr.Min.X+adr.Min.X-dst.Rect.Min.X)*4
 
 		for dx := int32(adr.Min.X); dx < int32(adr.Max.X); dx, d = dx+1, d+4 {
-			sx := (float64(dx)+0.5)*xscale - 0.5
+			sx := (float32(dx)+0.5)*xscale - 0.5
 			sx0 := int32(sx)
-			xFrac0 := sx - float64(sx0)
+			xFrac0 := sx - float32(sx0)
 			xFrac1 := 1 - xFrac0
 			sx1 := sx0 + 1
 			if sx < 0 {
@@ -1561,19 +1560,19 @@ func (ablInterpolator) scale_RGBA_RGBA_Over(dst *image.RGBA, dr, adr image.Recta
 			s00gu := uint32(src.Pix[s00i+1]) * 0x101
 			s00bu := uint32(src.Pix[s00i+2]) * 0x101
 			s00au := uint32(src.Pix[s00i+3]) * 0x101
-			s00r := float64(s00ru)
-			s00g := float64(s00gu)
-			s00b := float64(s00bu)
-			s00a := float64(s00au)
+			s00r := float32(s00ru)
+			s00g := float32(s00gu)
+			s00b := float32(s00bu)
+			s00a := float32(s00au)
 			s10i := (sr.Min.Y+int(sy0)-src.Rect.Min.Y)*src.Stride + (sr.Min.X+int(sx1)-src.Rect.Min.X)*4
 			s10ru := uint32(src.Pix[s10i+0]) * 0x101
 			s10gu := uint32(src.Pix[s10i+1]) * 0x101
 			s10bu := uint32(src.Pix[s10i+2]) * 0x101
 			s10au := uint32(src.Pix[s10i+3]) * 0x101
-			s10r := float64(s10ru)
-			s10g := float64(s10gu)
-			s10b := float64(s10bu)
-			s10a := float64(s10au)
+			s10r := float32(s10ru)
+			s10g := float32(s10gu)
+			s10b := float32(s10bu)
+			s10a := float32(s10au)
 			s10r = xFrac1*s00r + xFrac0*s10r
 			s10g = xFrac1*s00g + xFrac0*s10g
 			s10b = xFrac1*s00b + xFrac0*s10b
@@ -1583,19 +1582,19 @@ func (ablInterpolator) scale_RGBA_RGBA_Over(dst *image.RGBA, dr, adr image.Recta
 			s01gu := uint32(src.Pix[s01i+1]) * 0x101
 			s01bu := uint32(src.Pix[s01i+2]) * 0x101
 			s01au := uint32(src.Pix[s01i+3]) * 0x101
-			s01r := float64(s01ru)
-			s01g := float64(s01gu)
-			s01b := float64(s01bu)
-			s01a := float64(s01au)
+			s01r := float32(s01ru)
+			s01g := float32(s01gu)
+			s01b := float32(s01bu)
+			s01a := float32(s01au)
 			s11i := (sr.Min.Y+int(sy1)-src.Rect.Min.Y)*src.Stride + (sr.Min.X+int(sx1)-src.Rect.Min.X)*4
 			s11ru := uint32(src.Pix[s11i+0]) * 0x101
 			s11gu := uint32(src.Pix[s11i+1]) * 0x101
 			s11bu := uint32(src.Pix[s11i+2]) * 0x101
 			s11au := uint32(src.Pix[s11i+3]) * 0x101
-			s11r := float64(s11ru)
-			s11g := float64(s11gu)
-			s11b := float64(s11bu)
-			s11a := float64(s11au)
+			s11r := float32(s11ru)
+			s11g := float32(s11gu)
+			s11b := float32(s11bu)
+			s11a := float32(s11au)
 			s11r = xFrac1*s01r + xFrac0*s11r
 			s11g = xFrac1*s01g + xFrac0*s11g
 			s11b = xFrac1*s01b + xFrac0*s11b
@@ -1620,17 +1619,17 @@ func (ablInterpolator) scale_RGBA_RGBA_Over(dst *image.RGBA, dr, adr image.Recta
 func (ablInterpolator) scale_RGBA_RGBA_Src(dst *image.RGBA, dr, adr image.Rectangle, src *image.RGBA, sr image.Rectangle, opts *Options) {
 	sw := int32(sr.Dx())
 	sh := int32(sr.Dy())
-	yscale := float64(sh) / float64(dr.Dy())
-	xscale := float64(sw) / float64(dr.Dx())
+	yscale := float32(sh) / float32(dr.Dy())
+	xscale := float32(sw) / float32(dr.Dx())
 	swMinus1, shMinus1 := sw-1, sh-1
 
 	for dy := int32(adr.Min.Y); dy < int32(adr.Max.Y); dy++ {
-		sy := (float64(dy)+0.5)*yscale - 0.5
+		sy := (float32(dy)+0.5)*yscale - 0.5
 		// If sy < 0, we will clamp sy0 to 0 anyway, so it doesn't matter if
 		// we say int32(sy) instead of int32(math.Floor(sy)). Similarly for
 		// sx, below.
 		sy0 := int32(sy)
-		yFrac0 := sy - float64(sy0)
+		yFrac0 := sy - float32(sy0)
 		yFrac1 := 1 - yFrac0
 		sy1 := sy0 + 1
 		if sy < 0 {
@@ -1643,9 +1642,9 @@ func (ablInterpolator) scale_RGBA_RGBA_Src(dst *image.RGBA, dr, adr image.Rectan
 		d := (dr.Min.Y+int(dy)-dst.Rect.Min.Y)*dst.Stride + (dr.Min.X+adr.Min.X-dst.Rect.Min.X)*4
 
 		for dx := int32(adr.Min.X); dx < int32(adr.Max.X); dx, d = dx+1, d+4 {
-			sx := (float64(dx)+0.5)*xscale - 0.5
+			sx := (float32(dx)+0.5)*xscale - 0.5
 			sx0 := int32(sx)
-			xFrac0 := sx - float64(sx0)
+			xFrac0 := sx - float32(sx0)
 			xFrac1 := 1 - xFrac0
 			sx1 := sx0 + 1
 			if sx < 0 {
@@ -1661,19 +1660,19 @@ func (ablInterpolator) scale_RGBA_RGBA_Src(dst *image.RGBA, dr, adr image.Rectan
 			s00gu := uint32(src.Pix[s00i+1]) * 0x101
 			s00bu := uint32(src.Pix[s00i+2]) * 0x101
 			s00au := uint32(src.Pix[s00i+3]) * 0x101
-			s00r := float64(s00ru)
-			s00g := float64(s00gu)
-			s00b := float64(s00bu)
-			s00a := float64(s00au)
+			s00r := float32(s00ru)
+			s00g := float32(s00gu)
+			s00b := float32(s00bu)
+			s00a := float32(s00au)
 			s10i := (sr.Min.Y+int(sy0)-src.Rect.Min.Y)*src.Stride + (sr.Min.X+int(sx1)-src.Rect.Min.X)*4
 			s10ru := uint32(src.Pix[s10i+0]) * 0x101
 			s10gu := uint32(src.Pix[s10i+1]) * 0x101
 			s10bu := uint32(src.Pix[s10i+2]) * 0x101
 			s10au := uint32(src.Pix[s10i+3]) * 0x101
-			s10r := float64(s10ru)
-			s10g := float64(s10gu)
-			s10b := float64(s10bu)
-			s10a := float64(s10au)
+			s10r := float32(s10ru)
+			s10g := float32(s10gu)
+			s10b := float32(s10bu)
+			s10a := float32(s10au)
 			s10r = xFrac1*s00r + xFrac0*s10r
 			s10g = xFrac1*s00g + xFrac0*s10g
 			s10b = xFrac1*s00b + xFrac0*s10b
@@ -1683,19 +1682,19 @@ func (ablInterpolator) scale_RGBA_RGBA_Src(dst *image.RGBA, dr, adr image.Rectan
 			s01gu := uint32(src.Pix[s01i+1]) * 0x101
 			s01bu := uint32(src.Pix[s01i+2]) * 0x101
 			s01au := uint32(src.Pix[s01i+3]) * 0x101
-			s01r := float64(s01ru)
-			s01g := float64(s01gu)
-			s01b := float64(s01bu)
-			s01a := float64(s01au)
+			s01r := float32(s01ru)
+			s01g := float32(s01gu)
+			s01b := float32(s01bu)
+			s01a := float32(s01au)
 			s11i := (sr.Min.Y+int(sy1)-src.Rect.Min.Y)*src.Stride + (sr.Min.X+int(sx1)-src.Rect.Min.X)*4
 			s11ru := uint32(src.Pix[s11i+0]) * 0x101
 			s11gu := uint32(src.Pix[s11i+1]) * 0x101
 			s11bu := uint32(src.Pix[s11i+2]) * 0x101
 			s11au := uint32(src.Pix[s11i+3]) * 0x101
-			s11r := float64(s11ru)
-			s11g := float64(s11gu)
-			s11b := float64(s11bu)
-			s11a := float64(s11au)
+			s11r := float32(s11ru)
+			s11g := float32(s11gu)
+			s11b := float32(s11bu)
+			s11a := float32(s11au)
 			s11r = xFrac1*s01r + xFrac0*s11r
 			s11g = xFrac1*s01g + xFrac0*s11g
 			s11b = xFrac1*s01b + xFrac0*s11b
@@ -1719,17 +1718,17 @@ func (ablInterpolator) scale_RGBA_RGBA_Src(dst *image.RGBA, dr, adr image.Rectan
 func (ablInterpolator) scale_RGBA_YCbCr444_Src(dst *image.RGBA, dr, adr image.Rectangle, src *image.YCbCr, sr image.Rectangle, opts *Options) {
 	sw := int32(sr.Dx())
 	sh := int32(sr.Dy())
-	yscale := float64(sh) / float64(dr.Dy())
-	xscale := float64(sw) / float64(dr.Dx())
+	yscale := float32(sh) / float32(dr.Dy())
+	xscale := float32(sw) / float32(dr.Dx())
 	swMinus1, shMinus1 := sw-1, sh-1
 
 	for dy := int32(adr.Min.Y); dy < int32(adr.Max.Y); dy++ {
-		sy := (float64(dy)+0.5)*yscale - 0.5
+		sy := (float32(dy)+0.5)*yscale - 0.5
 		// If sy < 0, we will clamp sy0 to 0 anyway, so it doesn't matter if
 		// we say int32(sy) instead of int32(math.Floor(sy)). Similarly for
 		// sx, below.
 		sy0 := int32(sy)
-		yFrac0 := sy - float64(sy0)
+		yFrac0 := sy - float32(sy0)
 		yFrac1 := 1 - yFrac0
 		sy1 := sy0 + 1
 		if sy < 0 {
@@ -1742,9 +1741,9 @@ func (ablInterpolator) scale_RGBA_YCbCr444_Src(dst *image.RGBA, dr, adr image.Re
 		d := (dr.Min.Y+int(dy)-dst.Rect.Min.Y)*dst.Stride + (dr.Min.X+adr.Min.X-dst.Rect.Min.X)*4
 
 		for dx := int32(adr.Min.X); dx < int32(adr.Max.X); dx, d = dx+1, d+4 {
-			sx := (float64(dx)+0.5)*xscale - 0.5
+			sx := (float32(dx)+0.5)*xscale - 0.5
 			sx0 := int32(sx)
-			xFrac0 := sx - float64(sx0)
+			xFrac0 := sx - float32(sx0)
 			xFrac1 := 1 - xFrac0
 			sx1 := sx0 + 1
 			if sx < 0 {
@@ -1781,9 +1780,9 @@ func (ablInterpolator) scale_RGBA_YCbCr444_Src(dst *image.RGBA, dr, adr image.Re
 				s00bu = 0xffff
 			}
 
-			s00r := float64(s00ru)
-			s00g := float64(s00gu)
-			s00b := float64(s00bu)
+			s00r := float32(s00ru)
+			s00g := float32(s00gu)
+			s00b := float32(s00bu)
 			s10i := (sr.Min.Y+int(sy0)-src.Rect.Min.Y)*src.YStride + (sr.Min.X + int(sx1) - src.Rect.Min.X)
 			s10j := (sr.Min.Y+int(sy0)-src.Rect.Min.Y)*src.CStride + (sr.Min.X + int(sx1) - src.Rect.Min.X)
 
@@ -1810,9 +1809,9 @@ func (ablInterpolator) scale_RGBA_YCbCr444_Src(dst *image.RGBA, dr, adr image.Re
 				s10bu = 0xffff
 			}
 
-			s10r := float64(s10ru)
-			s10g := float64(s10gu)
-			s10b := float64(s10bu)
+			s10r := float32(s10ru)
+			s10g := float32(s10gu)
+			s10b := float32(s10bu)
 			s10r = xFrac1*s00r + xFrac0*s10r
 			s10g = xFrac1*s00g + xFrac0*s10g
 			s10b = xFrac1*s00b + xFrac0*s10b
@@ -1842,9 +1841,9 @@ func (ablInterpolator) scale_RGBA_YCbCr444_Src(dst *image.RGBA, dr, adr image.Re
 				s01bu = 0xffff
 			}
 
-			s01r := float64(s01ru)
-			s01g := float64(s01gu)
-			s01b := float64(s01bu)
+			s01r := float32(s01ru)
+			s01g := float32(s01gu)
+			s01b := float32(s01bu)
 			s11i := (sr.Min.Y+int(sy1)-src.Rect.Min.Y)*src.YStride + (sr.Min.X + int(sx1) - src.Rect.Min.X)
 			s11j := (sr.Min.Y+int(sy1)-src.Rect.Min.Y)*src.CStride + (sr.Min.X + int(sx1) - src.Rect.Min.X)
 
@@ -1871,9 +1870,9 @@ func (ablInterpolator) scale_RGBA_YCbCr444_Src(dst *image.RGBA, dr, adr image.Re
 				s11bu = 0xffff
 			}
 
-			s11r := float64(s11ru)
-			s11g := float64(s11gu)
-			s11b := float64(s11bu)
+			s11r := float32(s11ru)
+			s11g := float32(s11gu)
+			s11b := float32(s11bu)
 			s11r = xFrac1*s01r + xFrac0*s11r
 			s11g = xFrac1*s01g + xFrac0*s11g
 			s11b = xFrac1*s01b + xFrac0*s11b
@@ -1894,17 +1893,17 @@ func (ablInterpolator) scale_RGBA_YCbCr444_Src(dst *image.RGBA, dr, adr image.Re
 func (ablInterpolator) scale_RGBA_YCbCr422_Src(dst *image.RGBA, dr, adr image.Rectangle, src *image.YCbCr, sr image.Rectangle, opts *Options) {
 	sw := int32(sr.Dx())
 	sh := int32(sr.Dy())
-	yscale := float64(sh) / float64(dr.Dy())
-	xscale := float64(sw) / float64(dr.Dx())
+	yscale := float32(sh) / float32(dr.Dy())
+	xscale := float32(sw) / float32(dr.Dx())
 	swMinus1, shMinus1 := sw-1, sh-1
 
 	for dy := int32(adr.Min.Y); dy < int32(adr.Max.Y); dy++ {
-		sy := (float64(dy)+0.5)*yscale - 0.5
+		sy := (float32(dy)+0.5)*yscale - 0.5
 		// If sy < 0, we will clamp sy0 to 0 anyway, so it doesn't matter if
 		// we say int32(sy) instead of int32(math.Floor(sy)). Similarly for
 		// sx, below.
 		sy0 := int32(sy)
-		yFrac0 := sy - float64(sy0)
+		yFrac0 := sy - float32(sy0)
 		yFrac1 := 1 - yFrac0
 		sy1 := sy0 + 1
 		if sy < 0 {
@@ -1917,9 +1916,9 @@ func (ablInterpolator) scale_RGBA_YCbCr422_Src(dst *image.RGBA, dr, adr image.Re
 		d := (dr.Min.Y+int(dy)-dst.Rect.Min.Y)*dst.Stride + (dr.Min.X+adr.Min.X-dst.Rect.Min.X)*4
 
 		for dx := int32(adr.Min.X); dx < int32(adr.Max.X); dx, d = dx+1, d+4 {
-			sx := (float64(dx)+0.5)*xscale - 0.5
+			sx := (float32(dx)+0.5)*xscale - 0.5
 			sx0 := int32(sx)
-			xFrac0 := sx - float64(sx0)
+			xFrac0 := sx - float32(sx0)
 			xFrac1 := 1 - xFrac0
 			sx1 := sx0 + 1
 			if sx < 0 {
@@ -1956,9 +1955,9 @@ func (ablInterpolator) scale_RGBA_YCbCr422_Src(dst *image.RGBA, dr, adr image.Re
 				s00bu = 0xffff
 			}
 
-			s00r := float64(s00ru)
-			s00g := float64(s00gu)
-			s00b := float64(s00bu)
+			s00r := float32(s00ru)
+			s00g := float32(s00gu)
+			s00b := float32(s00bu)
 			s10i := (sr.Min.Y+int(sy0)-src.Rect.Min.Y)*src.YStride + (sr.Min.X + int(sx1) - src.Rect.Min.X)
 			s10j := (sr.Min.Y+int(sy0)-src.Rect.Min.Y)*src.CStride + ((sr.Min.X+int(sx1))/2 - src.Rect.Min.X/2)
 
@@ -1985,9 +1984,9 @@ func (ablInterpolator) scale_RGBA_YCbCr422_Src(dst *image.RGBA, dr, adr image.Re
 				s10bu = 0xffff
 			}
 
-			s10r := float64(s10ru)
-			s10g := float64(s10gu)
-			s10b := float64(s10bu)
+			s10r := float32(s10ru)
+			s10g := float32(s10gu)
+			s10b := float32(s10bu)
 			s10r = xFrac1*s00r + xFrac0*s10r
 			s10g = xFrac1*s00g + xFrac0*s10g
 			s10b = xFrac1*s00b + xFrac0*s10b
@@ -2017,9 +2016,9 @@ func (ablInterpolator) scale_RGBA_YCbCr422_Src(dst *image.RGBA, dr, adr image.Re
 				s01bu = 0xffff
 			}
 
-			s01r := float64(s01ru)
-			s01g := float64(s01gu)
-			s01b := float64(s01bu)
+			s01r := float32(s01ru)
+			s01g := float32(s01gu)
+			s01b := float32(s01bu)
 			s11i := (sr.Min.Y+int(sy1)-src.Rect.Min.Y)*src.YStride + (sr.Min.X + int(sx1) - src.Rect.Min.X)
 			s11j := (sr.Min.Y+int(sy1)-src.Rect.Min.Y)*src.CStride + ((sr.Min.X+int(sx1))/2 - src.Rect.Min.X/2)
 
@@ -2046,9 +2045,9 @@ func (ablInterpolator) scale_RGBA_YCbCr422_Src(dst *image.RGBA, dr, adr image.Re
 				s11bu = 0xffff
 			}
 
-			s11r := float64(s11ru)
-			s11g := float64(s11gu)
-			s11b := float64(s11bu)
+			s11r := float32(s11ru)
+			s11g := float32(s11gu)
+			s11b := float32(s11bu)
 			s11r = xFrac1*s01r + xFrac0*s11r
 			s11g = xFrac1*s01g + xFrac0*s11g
 			s11b = xFrac1*s01b + xFrac0*s11b
@@ -2069,17 +2068,17 @@ func (ablInterpolator) scale_RGBA_YCbCr422_Src(dst *image.RGBA, dr, adr image.Re
 func (ablInterpolator) scale_RGBA_YCbCr420_Src(dst *image.RGBA, dr, adr image.Rectangle, src *image.YCbCr, sr image.Rectangle, opts *Options) {
 	sw := int32(sr.Dx())
 	sh := int32(sr.Dy())
-	yscale := float64(sh) / float64(dr.Dy())
-	xscale := float64(sw) / float64(dr.Dx())
+	yscale := float32(sh) / float32(dr.Dy())
+	xscale := float32(sw) / float32(dr.Dx())
 	swMinus1, shMinus1 := sw-1, sh-1
 
 	for dy := int32(adr.Min.Y); dy < int32(adr.Max.Y); dy++ {
-		sy := (float64(dy)+0.5)*yscale - 0.5
+		sy := (float32(dy)+0.5)*yscale - 0.5
 		// If sy < 0, we will clamp sy0 to 0 anyway, so it doesn't matter if
 		// we say int32(sy) instead of int32(math.Floor(sy)). Similarly for
 		// sx, below.
 		sy0 := int32(sy)
-		yFrac0 := sy - float64(sy0)
+		yFrac0 := sy - float32(sy0)
 		yFrac1 := 1 - yFrac0
 		sy1 := sy0 + 1
 		if sy < 0 {
@@ -2092,9 +2091,9 @@ func (ablInterpolator) scale_RGBA_YCbCr420_Src(dst *image.RGBA, dr, adr image.Re
 		d := (dr.Min.Y+int(dy)-dst.Rect.Min.Y)*dst.Stride + (dr.Min.X+adr.Min.X-dst.Rect.Min.X)*4
 
 		for dx := int32(adr.Min.X); dx < int32(adr.Max.X); dx, d = dx+1, d+4 {
-			sx := (float64(dx)+0.5)*xscale - 0.5
+			sx := (float32(dx)+0.5)*xscale - 0.5
 			sx0 := int32(sx)
-			xFrac0 := sx - float64(sx0)
+			xFrac0 := sx - float32(sx0)
 			xFrac1 := 1 - xFrac0
 			sx1 := sx0 + 1
 			if sx < 0 {
@@ -2131,9 +2130,9 @@ func (ablInterpolator) scale_RGBA_YCbCr420_Src(dst *image.RGBA, dr, adr image.Re
 				s00bu = 0xffff
 			}
 
-			s00r := float64(s00ru)
-			s00g := float64(s00gu)
-			s00b := float64(s00bu)
+			s00r := float32(s00ru)
+			s00g := float32(s00gu)
+			s00b := float32(s00bu)
 			s10i := (sr.Min.Y+int(sy0)-src.Rect.Min.Y)*src.YStride + (sr.Min.X + int(sx1) - src.Rect.Min.X)
 			s10j := ((sr.Min.Y+int(sy0))/2-src.Rect.Min.Y/2)*src.CStride + ((sr.Min.X+int(sx1))/2 - src.Rect.Min.X/2)
 
@@ -2160,9 +2159,9 @@ func (ablInterpolator) scale_RGBA_YCbCr420_Src(dst *image.RGBA, dr, adr image.Re
 				s10bu = 0xffff
 			}
 
-			s10r := float64(s10ru)
-			s10g := float64(s10gu)
-			s10b := float64(s10bu)
+			s10r := float32(s10ru)
+			s10g := float32(s10gu)
+			s10b := float32(s10bu)
 			s10r = xFrac1*s00r + xFrac0*s10r
 			s10g = xFrac1*s00g + xFrac0*s10g
 			s10b = xFrac1*s00b + xFrac0*s10b
@@ -2192,9 +2191,9 @@ func (ablInterpolator) scale_RGBA_YCbCr420_Src(dst *image.RGBA, dr, adr image.Re
 				s01bu = 0xffff
 			}
 
-			s01r := float64(s01ru)
-			s01g := float64(s01gu)
-			s01b := float64(s01bu)
+			s01r := float32(s01ru)
+			s01g := float32(s01gu)
+			s01b := float32(s01bu)
 			s11i := (sr.Min.Y+int(sy1)-src.Rect.Min.Y)*src.YStride + (sr.Min.X + int(sx1) - src.Rect.Min.X)
 			s11j := ((sr.Min.Y+int(sy1))/2-src.Rect.Min.Y/2)*src.CStride + ((sr.Min.X+int(sx1))/2 - src.Rect.Min.X/2)
 
@@ -2221,9 +2220,9 @@ func (ablInterpolator) scale_RGBA_YCbCr420_Src(dst *image.RGBA, dr, adr image.Re
 				s11bu = 0xffff
 			}
 
-			s11r := float64(s11ru)
-			s11g := float64(s11gu)
-			s11b := float64(s11bu)
+			s11r := float32(s11ru)
+			s11g := float32(s11gu)
+			s11b := float32(s11bu)
 			s11r = xFrac1*s01r + xFrac0*s11r
 			s11g = xFrac1*s01g + xFrac0*s11g
 			s11b = xFrac1*s01b + xFrac0*s11b
@@ -2244,17 +2243,17 @@ func (ablInterpolator) scale_RGBA_YCbCr420_Src(dst *image.RGBA, dr, adr image.Re
 func (ablInterpolator) scale_RGBA_YCbCr440_Src(dst *image.RGBA, dr, adr image.Rectangle, src *image.YCbCr, sr image.Rectangle, opts *Options) {
 	sw := int32(sr.Dx())
 	sh := int32(sr.Dy())
-	yscale := float64(sh) / float64(dr.Dy())
-	xscale := float64(sw) / float64(dr.Dx())
+	yscale := float32(sh) / float32(dr.Dy())
+	xscale := float32(sw) / float32(dr.Dx())
 	swMinus1, shMinus1 := sw-1, sh-1
 
 	for dy := int32(adr.Min.Y); dy < int32(adr.Max.Y); dy++ {
-		sy := (float64(dy)+0.5)*yscale - 0.5
+		sy := (float32(dy)+0.5)*yscale - 0.5
 		// If sy < 0, we will clamp sy0 to 0 anyway, so it doesn't matter if
 		// we say int32(sy) instead of int32(math.Floor(sy)). Similarly for
 		// sx, below.
 		sy0 := int32(sy)
-		yFrac0 := sy - float64(sy0)
+		yFrac0 := sy - float32(sy0)
 		yFrac1 := 1 - yFrac0
 		sy1 := sy0 + 1
 		if sy < 0 {
@@ -2267,9 +2266,9 @@ func (ablInterpolator) scale_RGBA_YCbCr440_Src(dst *image.RGBA, dr, adr image.Re
 		d := (dr.Min.Y+int(dy)-dst.Rect.Min.Y)*dst.Stride + (dr.Min.X+adr.Min.X-dst.Rect.Min.X)*4
 
 		for dx := int32(adr.Min.X); dx < int32(adr.Max.X); dx, d = dx+1, d+4 {
-			sx := (float64(dx)+0.5)*xscale - 0.5
+			sx := (float32(dx)+0.5)*xscale - 0.5
 			sx0 := int32(sx)
-			xFrac0 := sx - float64(sx0)
+			xFrac0 := sx - float32(sx0)
 			xFrac1 := 1 - xFrac0
 			sx1 := sx0 + 1
 			if sx < 0 {
@@ -2306,9 +2305,9 @@ func (ablInterpolator) scale_RGBA_YCbCr440_Src(dst *image.RGBA, dr, adr image.Re
 				s00bu = 0xffff
 			}
 
-			s00r := float64(s00ru)
-			s00g := float64(s00gu)
-			s00b := float64(s00bu)
+			s00r := float32(s00ru)
+			s00g := float32(s00gu)
+			s00b := float32(s00bu)
 			s10i := (sr.Min.Y+int(sy0)-src.Rect.Min.Y)*src.YStride + (sr.Min.X + int(sx1) - src.Rect.Min.X)
 			s10j := ((sr.Min.Y+int(sy0))/2-src.Rect.Min.Y/2)*src.CStride + (sr.Min.X + int(sx1) - src.Rect.Min.X)
 
@@ -2335,9 +2334,9 @@ func (ablInterpolator) scale_RGBA_YCbCr440_Src(dst *image.RGBA, dr, adr image.Re
 				s10bu = 0xffff
 			}
 
-			s10r := float64(s10ru)
-			s10g := float64(s10gu)
-			s10b := float64(s10bu)
+			s10r := float32(s10ru)
+			s10g := float32(s10gu)
+			s10b := float32(s10bu)
 			s10r = xFrac1*s00r + xFrac0*s10r
 			s10g = xFrac1*s00g + xFrac0*s10g
 			s10b = xFrac1*s00b + xFrac0*s10b
@@ -2367,9 +2366,9 @@ func (ablInterpolator) scale_RGBA_YCbCr440_Src(dst *image.RGBA, dr, adr image.Re
 				s01bu = 0xffff
 			}
 
-			s01r := float64(s01ru)
-			s01g := float64(s01gu)
-			s01b := float64(s01bu)
+			s01r := float32(s01ru)
+			s01g := float32(s01gu)
+			s01b := float32(s01bu)
 			s11i := (sr.Min.Y+int(sy1)-src.Rect.Min.Y)*src.YStride + (sr.Min.X + int(sx1) - src.Rect.Min.X)
 			s11j := ((sr.Min.Y+int(sy1))/2-src.Rect.Min.Y/2)*src.CStride + (sr.Min.X + int(sx1) - src.Rect.Min.X)
 
@@ -2396,9 +2395,9 @@ func (ablInterpolator) scale_RGBA_YCbCr440_Src(dst *image.RGBA, dr, adr image.Re
 				s11bu = 0xffff
 			}
 
-			s11r := float64(s11ru)
-			s11g := float64(s11gu)
-			s11b := float64(s11bu)
+			s11r := float32(s11ru)
+			s11g := float32(s11gu)
+			s11b := float32(s11bu)
 			s11r = xFrac1*s01r + xFrac0*s11r
 			s11g = xFrac1*s01g + xFrac0*s11g
 			s11b = xFrac1*s01b + xFrac0*s11b
@@ -2419,17 +2418,17 @@ func (ablInterpolator) scale_RGBA_YCbCr440_Src(dst *image.RGBA, dr, adr image.Re
 func (ablInterpolator) scale_RGBA_Image_Over(dst *image.RGBA, dr, adr image.Rectangle, src image.Image, sr image.Rectangle, opts *Options) {
 	sw := int32(sr.Dx())
 	sh := int32(sr.Dy())
-	yscale := float64(sh) / float64(dr.Dy())
-	xscale := float64(sw) / float64(dr.Dx())
+	yscale := float32(sh) / float32(dr.Dy())
+	xscale := float32(sw) / float32(dr.Dx())
 	swMinus1, shMinus1 := sw-1, sh-1
 
 	for dy := int32(adr.Min.Y); dy < int32(adr.Max.Y); dy++ {
-		sy := (float64(dy)+0.5)*yscale - 0.5
+		sy := (float32(dy)+0.5)*yscale - 0.5
 		// If sy < 0, we will clamp sy0 to 0 anyway, so it doesn't matter if
 		// we say int32(sy) instead of int32(math.Floor(sy)). Similarly for
 		// sx, below.
 		sy0 := int32(sy)
-		yFrac0 := sy - float64(sy0)
+		yFrac0 := sy - float32(sy0)
 		yFrac1 := 1 - yFrac0
 		sy1 := sy0 + 1
 		if sy < 0 {
@@ -2442,9 +2441,9 @@ func (ablInterpolator) scale_RGBA_Image_Over(dst *image.RGBA, dr, adr image.Rect
 		d := (dr.Min.Y+int(dy)-dst.Rect.Min.Y)*dst.Stride + (dr.Min.X+adr.Min.X-dst.Rect.Min.X)*4
 
 		for dx := int32(adr.Min.X); dx < int32(adr.Max.X); dx, d = dx+1, d+4 {
-			sx := (float64(dx)+0.5)*xscale - 0.5
+			sx := (float32(dx)+0.5)*xscale - 0.5
 			sx0 := int32(sx)
-			xFrac0 := sx - float64(sx0)
+			xFrac0 := sx - float32(sx0)
 			xFrac1 := 1 - xFrac0
 			sx1 := sx0 + 1
 			if sx < 0 {
@@ -2456,29 +2455,29 @@ func (ablInterpolator) scale_RGBA_Image_Over(dst *image.RGBA, dr, adr image.Rect
 			}
 
 			s00ru, s00gu, s00bu, s00au := src.At(sr.Min.X+int(sx0), sr.Min.Y+int(sy0)).RGBA()
-			s00r := float64(s00ru)
-			s00g := float64(s00gu)
-			s00b := float64(s00bu)
-			s00a := float64(s00au)
+			s00r := float32(s00ru)
+			s00g := float32(s00gu)
+			s00b := float32(s00bu)
+			s00a := float32(s00au)
 			s10ru, s10gu, s10bu, s10au := src.At(sr.Min.X+int(sx1), sr.Min.Y+int(sy0)).RGBA()
-			s10r := float64(s10ru)
-			s10g := float64(s10gu)
-			s10b := float64(s10bu)
-			s10a := float64(s10au)
+			s10r := float32(s10ru)
+			s10g := float32(s10gu)
+			s10b := float32(s10bu)
+			s10a := float32(s10au)
 			s10r = xFrac1*s00r + xFrac0*s10r
 			s10g = xFrac1*s00g + xFrac0*s10g
 			s10b = xFrac1*s00b + xFrac0*s10b
 			s10a = xFrac1*s00a + xFrac0*s10a
 			s01ru, s01gu, s01bu, s01au := src.At(sr.Min.X+int(sx0), sr.Min.Y+int(sy1)).RGBA()
-			s01r := float64(s01ru)
-			s01g := float64(s01gu)
-			s01b := float64(s01bu)
-			s01a := float64(s01au)
+			s01r := float32(s01ru)
+			s01g := float32(s01gu)
+			s01b := float32(s01bu)
+			s01a := float32(s01au)
 			s11ru, s11gu, s11bu, s11au := src.At(sr.Min.X+int(sx1), sr.Min.Y+int(sy1)).RGBA()
-			s11r := float64(s11ru)
-			s11g := float64(s11gu)
-			s11b := float64(s11bu)
-			s11a := float64(s11au)
+			s11r := float32(s11ru)
+			s11g := float32(s11gu)
+			s11b := float32(s11bu)
+			s11a := float32(s11au)
 			s11r = xFrac1*s01r + xFrac0*s11r
 			s11g = xFrac1*s01g + xFrac0*s11g
 			s11b = xFrac1*s01b + xFrac0*s11b
@@ -2503,17 +2502,17 @@ func (ablInterpolator) scale_RGBA_Image_Over(dst *image.RGBA, dr, adr image.Rect
 func (ablInterpolator) scale_RGBA_Image_Src(dst *image.RGBA, dr, adr image.Rectangle, src image.Image, sr image.Rectangle, opts *Options) {
 	sw := int32(sr.Dx())
 	sh := int32(sr.Dy())
-	yscale := float64(sh) / float64(dr.Dy())
-	xscale := float64(sw) / float64(dr.Dx())
+	yscale := float32(sh) / float32(dr.Dy())
+	xscale := float32(sw) / float32(dr.Dx())
 	swMinus1, shMinus1 := sw-1, sh-1
 
 	for dy := int32(adr.Min.Y); dy < int32(adr.Max.Y); dy++ {
-		sy := (float64(dy)+0.5)*yscale - 0.5
+		sy := (float32(dy)+0.5)*yscale - 0.5
 		// If sy < 0, we will clamp sy0 to 0 anyway, so it doesn't matter if
 		// we say int32(sy) instead of int32(math.Floor(sy)). Similarly for
 		// sx, below.
 		sy0 := int32(sy)
-		yFrac0 := sy - float64(sy0)
+		yFrac0 := sy - float32(sy0)
 		yFrac1 := 1 - yFrac0
 		sy1 := sy0 + 1
 		if sy < 0 {
@@ -2526,9 +2525,9 @@ func (ablInterpolator) scale_RGBA_Image_Src(dst *image.RGBA, dr, adr image.Recta
 		d := (dr.Min.Y+int(dy)-dst.Rect.Min.Y)*dst.Stride + (dr.Min.X+adr.Min.X-dst.Rect.Min.X)*4
 
 		for dx := int32(adr.Min.X); dx < int32(adr.Max.X); dx, d = dx+1, d+4 {
-			sx := (float64(dx)+0.5)*xscale - 0.5
+			sx := (float32(dx)+0.5)*xscale - 0.5
 			sx0 := int32(sx)
-			xFrac0 := sx - float64(sx0)
+			xFrac0 := sx - float32(sx0)
 			xFrac1 := 1 - xFrac0
 			sx1 := sx0 + 1
 			if sx < 0 {
@@ -2540,29 +2539,29 @@ func (ablInterpolator) scale_RGBA_Image_Src(dst *image.RGBA, dr, adr image.Recta
 			}
 
 			s00ru, s00gu, s00bu, s00au := src.At(sr.Min.X+int(sx0), sr.Min.Y+int(sy0)).RGBA()
-			s00r := float64(s00ru)
-			s00g := float64(s00gu)
-			s00b := float64(s00bu)
-			s00a := float64(s00au)
+			s00r := float32(s00ru)
+			s00g := float32(s00gu)
+			s00b := float32(s00bu)
+			s00a := float32(s00au)
 			s10ru, s10gu, s10bu, s10au := src.At(sr.Min.X+int(sx1), sr.Min.Y+int(sy0)).RGBA()
-			s10r := float64(s10ru)
-			s10g := float64(s10gu)
-			s10b := float64(s10bu)
-			s10a := float64(s10au)
+			s10r := float32(s10ru)
+			s10g := float32(s10gu)
+			s10b := float32(s10bu)
+			s10a := float32(s10au)
 			s10r = xFrac1*s00r + xFrac0*s10r
 			s10g = xFrac1*s00g + xFrac0*s10g
 			s10b = xFrac1*s00b + xFrac0*s10b
 			s10a = xFrac1*s00a + xFrac0*s10a
 			s01ru, s01gu, s01bu, s01au := src.At(sr.Min.X+int(sx0), sr.Min.Y+int(sy1)).RGBA()
-			s01r := float64(s01ru)
-			s01g := float64(s01gu)
-			s01b := float64(s01bu)
-			s01a := float64(s01au)
+			s01r := float32(s01ru)
+			s01g := float32(s01gu)
+			s01b := float32(s01bu)
+			s01a := float32(s01au)
 			s11ru, s11gu, s11bu, s11au := src.At(sr.Min.X+int(sx1), sr.Min.Y+int(sy1)).RGBA()
-			s11r := float64(s11ru)
-			s11g := float64(s11gu)
-			s11b := float64(s11bu)
-			s11a := float64(s11au)
+			s11r := float32(s11ru)
+			s11g := float32(s11gu)
+			s11b := float32(s11bu)
+			s11a := float32(s11au)
 			s11r = xFrac1*s01r + xFrac0*s11r
 			s11g = xFrac1*s01g + xFrac0*s11g
 			s11b = xFrac1*s01b + xFrac0*s11b
@@ -2586,8 +2585,8 @@ func (ablInterpolator) scale_RGBA_Image_Src(dst *image.RGBA, dr, adr image.Recta
 func (ablInterpolator) scale_Image_Image_Over(dst Image, dr, adr image.Rectangle, src image.Image, sr image.Rectangle, opts *Options) {
 	sw := int32(sr.Dx())
 	sh := int32(sr.Dy())
-	yscale := float64(sh) / float64(dr.Dy())
-	xscale := float64(sw) / float64(dr.Dx())
+	yscale := float32(sh) / float32(dr.Dy())
+	xscale := float32(sw) / float32(dr.Dx())
 	swMinus1, shMinus1 := sw-1, sh-1
 	srcMask, smp := opts.SrcMask, opts.SrcMaskP
 	dstMask, dmp := opts.DstMask, opts.DstMaskP
@@ -2595,12 +2594,12 @@ func (ablInterpolator) scale_Image_Image_Over(dst Image, dr, adr image.Rectangle
 	dstColor := color.Color(dstColorRGBA64)
 
 	for dy := int32(adr.Min.Y); dy < int32(adr.Max.Y); dy++ {
-		sy := (float64(dy)+0.5)*yscale - 0.5
+		sy := (float32(dy)+0.5)*yscale - 0.5
 		// If sy < 0, we will clamp sy0 to 0 anyway, so it doesn't matter if
 		// we say int32(sy) instead of int32(math.Floor(sy)). Similarly for
 		// sx, below.
 		sy0 := int32(sy)
-		yFrac0 := sy - float64(sy0)
+		yFrac0 := sy - float32(sy0)
 		yFrac1 := 1 - yFrac0
 		sy1 := sy0 + 1
 		if sy < 0 {
@@ -2612,9 +2611,9 @@ func (ablInterpolator) scale_Image_Image_Over(dst Image, dr, adr image.Rectangle
 		}
 
 		for dx := int32(adr.Min.X); dx < int32(adr.Max.X); dx++ {
-			sx := (float64(dx)+0.5)*xscale - 0.5
+			sx := (float32(dx)+0.5)*xscale - 0.5
 			sx0 := int32(sx)
-			xFrac0 := sx - float64(sx0)
+			xFrac0 := sx - float32(sx0)
 			xFrac1 := 1 - xFrac0
 			sx1 := sx0 + 1
 			if sx < 0 {
@@ -2633,10 +2632,10 @@ func (ablInterpolator) scale_Image_Image_Over(dst Image, dr, adr image.Rectangle
 				s00bu = s00bu * ma / 0xffff
 				s00au = s00au * ma / 0xffff
 			}
-			s00r := float64(s00ru)
-			s00g := float64(s00gu)
-			s00b := float64(s00bu)
-			s00a := float64(s00au)
+			s00r := float32(s00ru)
+			s00g := float32(s00gu)
+			s00b := float32(s00bu)
+			s00a := float32(s00au)
 			s10ru, s10gu, s10bu, s10au := src.At(sr.Min.X+int(sx1), sr.Min.Y+int(sy0)).RGBA()
 			if srcMask != nil {
 				_, _, _, ma := srcMask.At(smp.X+sr.Min.X+int(sx1), smp.Y+sr.Min.Y+int(sy0)).RGBA()
@@ -2645,10 +2644,10 @@ func (ablInterpolator) scale_Image_Image_Over(dst Image, dr, adr image.Rectangle
 				s10bu = s10bu * ma / 0xffff
 				s10au = s10au * ma / 0xffff
 			}
-			s10r := float64(s10ru)
-			s10g := float64(s10gu)
-			s10b := float64(s10bu)
-			s10a := float64(s10au)
+			s10r := float32(s10ru)
+			s10g := float32(s10gu)
+			s10b := float32(s10bu)
+			s10a := float32(s10au)
 			s10r = xFrac1*s00r + xFrac0*s10r
 			s10g = xFrac1*s00g + xFrac0*s10g
 			s10b = xFrac1*s00b + xFrac0*s10b
@@ -2661,10 +2660,10 @@ func (ablInterpolator) scale_Image_Image_Over(dst Image, dr, adr image.Rectangle
 				s01bu = s01bu * ma / 0xffff
 				s01au = s01au * ma / 0xffff
 			}
-			s01r := float64(s01ru)
-			s01g := float64(s01gu)
-			s01b := float64(s01bu)
-			s01a := float64(s01au)
+			s01r := float32(s01ru)
+			s01g := float32(s01gu)
+			s01b := float32(s01bu)
+			s01a := float32(s01au)
 			s11ru, s11gu, s11bu, s11au := src.At(sr.Min.X+int(sx1), sr.Min.Y+int(sy1)).RGBA()
 			if srcMask != nil {
 				_, _, _, ma := srcMask.At(smp.X+sr.Min.X+int(sx1), smp.Y+sr.Min.Y+int(sy1)).RGBA()
@@ -2673,10 +2672,10 @@ func (ablInterpolator) scale_Image_Image_Over(dst Image, dr, adr image.Rectangle
 				s11bu = s11bu * ma / 0xffff
 				s11au = s11au * ma / 0xffff
 			}
-			s11r := float64(s11ru)
-			s11g := float64(s11gu)
-			s11b := float64(s11bu)
-			s11a := float64(s11au)
+			s11r := float32(s11ru)
+			s11g := float32(s11gu)
+			s11b := float32(s11bu)
+			s11a := float32(s11au)
 			s11r = xFrac1*s01r + xFrac0*s11r
 			s11g = xFrac1*s01g + xFrac0*s11g
 			s11b = xFrac1*s01b + xFrac0*s11b
@@ -2710,8 +2709,8 @@ func (ablInterpolator) scale_Image_Image_Over(dst Image, dr, adr image.Rectangle
 func (ablInterpolator) scale_Image_Image_Src(dst Image, dr, adr image.Rectangle, src image.Image, sr image.Rectangle, opts *Options) {
 	sw := int32(sr.Dx())
 	sh := int32(sr.Dy())
-	yscale := float64(sh) / float64(dr.Dy())
-	xscale := float64(sw) / float64(dr.Dx())
+	yscale := float32(sh) / float32(dr.Dy())
+	xscale := float32(sw) / float32(dr.Dx())
 	swMinus1, shMinus1 := sw-1, sh-1
 	srcMask, smp := opts.SrcMask, opts.SrcMaskP
 	dstMask, dmp := opts.DstMask, opts.DstMaskP
@@ -2719,12 +2718,12 @@ func (ablInterpolator) scale_Image_Image_Src(dst Image, dr, adr image.Rectangle,
 	dstColor := color.Color(dstColorRGBA64)
 
 	for dy := int32(adr.Min.Y); dy < int32(adr.Max.Y); dy++ {
-		sy := (float64(dy)+0.5)*yscale - 0.5
+		sy := (float32(dy)+0.5)*yscale - 0.5
 		// If sy < 0, we will clamp sy0 to 0 anyway, so it doesn't matter if
 		// we say int32(sy) instead of int32(math.Floor(sy)). Similarly for
 		// sx, below.
 		sy0 := int32(sy)
-		yFrac0 := sy - float64(sy0)
+		yFrac0 := sy - float32(sy0)
 		yFrac1 := 1 - yFrac0
 		sy1 := sy0 + 1
 		if sy < 0 {
@@ -2736,9 +2735,9 @@ func (ablInterpolator) scale_Image_Image_Src(dst Image, dr, adr image.Rectangle,
 		}
 
 		for dx := int32(adr.Min.X); dx < int32(adr.Max.X); dx++ {
-			sx := (float64(dx)+0.5)*xscale - 0.5
+			sx := (float32(dx)+0.5)*xscale - 0.5
 			sx0 := int32(sx)
-			xFrac0 := sx - float64(sx0)
+			xFrac0 := sx - float32(sx0)
 			xFrac1 := 1 - xFrac0
 			sx1 := sx0 + 1
 			if sx < 0 {
@@ -2757,10 +2756,10 @@ func (ablInterpolator) scale_Image_Image_Src(dst Image, dr, adr image.Rectangle,
 				s00bu = s00bu * ma / 0xffff
 				s00au = s00au * ma / 0xffff
 			}
-			s00r := float64(s00ru)
-			s00g := float64(s00gu)
-			s00b := float64(s00bu)
-			s00a := float64(s00au)
+			s00r := float32(s00ru)
+			s00g := float32(s00gu)
+			s00b := float32(s00bu)
+			s00a := float32(s00au)
 			s10ru, s10gu, s10bu, s10au := src.At(sr.Min.X+int(sx1), sr.Min.Y+int(sy0)).RGBA()
 			if srcMask != nil {
 				_, _, _, ma := srcMask.At(smp.X+sr.Min.X+int(sx1), smp.Y+sr.Min.Y+int(sy0)).RGBA()
@@ -2769,10 +2768,10 @@ func (ablInterpolator) scale_Image_Image_Src(dst Image, dr, adr image.Rectangle,
 				s10bu = s10bu * ma / 0xffff
 				s10au = s10au * ma / 0xffff
 			}
-			s10r := float64(s10ru)
-			s10g := float64(s10gu)
-			s10b := float64(s10bu)
-			s10a := float64(s10au)
+			s10r := float32(s10ru)
+			s10g := float32(s10gu)
+			s10b := float32(s10bu)
+			s10a := float32(s10au)
 			s10r = xFrac1*s00r + xFrac0*s10r
 			s10g = xFrac1*s00g + xFrac0*s10g
 			s10b = xFrac1*s00b + xFrac0*s10b
@@ -2785,10 +2784,10 @@ func (ablInterpolator) scale_Image_Image_Src(dst Image, dr, adr image.Rectangle,
 				s01bu = s01bu * ma / 0xffff
 				s01au = s01au * ma / 0xffff
 			}
-			s01r := float64(s01ru)
-			s01g := float64(s01gu)
-			s01b := float64(s01bu)
-			s01a := float64(s01au)
+			s01r := float32(s01ru)
+			s01g := float32(s01gu)
+			s01b := float32(s01bu)
+			s01a := float32(s01au)
 			s11ru, s11gu, s11bu, s11au := src.At(sr.Min.X+int(sx1), sr.Min.Y+int(sy1)).RGBA()
 			if srcMask != nil {
 				_, _, _, ma := srcMask.At(smp.X+sr.Min.X+int(sx1), smp.Y+sr.Min.Y+int(sy1)).RGBA()
@@ -2797,10 +2796,10 @@ func (ablInterpolator) scale_Image_Image_Src(dst Image, dr, adr image.Rectangle,
 				s11bu = s11bu * ma / 0xffff
 				s11au = s11au * ma / 0xffff
 			}
-			s11r := float64(s11ru)
-			s11g := float64(s11gu)
-			s11b := float64(s11bu)
-			s11a := float64(s11au)
+			s11r := float32(s11ru)
+			s11g := float32(s11gu)
+			s11b := float32(s11bu)
+			s11a := float32(s11au)
 			s11r = xFrac1*s01r + xFrac0*s11r
 			s11g = xFrac1*s01g + xFrac0*s11g
 			s11b = xFrac1*s01b + xFrac0*s11b
@@ -2837,12 +2836,12 @@ func (ablInterpolator) scale_Image_Image_Src(dst Image, dr, adr image.Rectangle,
 	}
 }
 
-func (ablInterpolator) transform_RGBA_Gray_Src(dst *image.RGBA, dr, adr image.Rectangle, d2s *f64.Aff3, src *image.Gray, sr image.Rectangle, bias image.Point, opts *Options) {
+func (ablInterpolator) transform_RGBA_Gray_Src(dst *image.RGBA, dr, adr image.Rectangle, d2s *f32.Aff3, src *image.Gray, sr image.Rectangle, bias image.Point, opts *Options) {
 	for dy := int32(adr.Min.Y); dy < int32(adr.Max.Y); dy++ {
-		dyf := float64(dr.Min.Y+int(dy)) + 0.5
+		dyf := float32(dr.Min.Y+int(dy)) + 0.5
 		d := (dr.Min.Y+int(dy)-dst.Rect.Min.Y)*dst.Stride + (dr.Min.X+adr.Min.X-dst.Rect.Min.X)*4
 		for dx := int32(adr.Min.X); dx < int32(adr.Max.X); dx, d = dx+1, d+4 {
-			dxf := float64(dr.Min.X+int(dx)) + 0.5
+			dxf := float32(dr.Min.X+int(dx)) + 0.5
 			sx := d2s[0]*dxf + d2s[1]*dyf + d2s[2]
 			sy := d2s[3]*dxf + d2s[4]*dyf + d2s[5]
 			if !(image.Point{int(sx) + bias.X, int(sy) + bias.Y}).In(sr) {
@@ -2851,7 +2850,7 @@ func (ablInterpolator) transform_RGBA_Gray_Src(dst *image.RGBA, dr, adr image.Re
 
 			sx -= 0.5
 			sx0 := int(sx)
-			xFrac0 := sx - float64(sx0)
+			xFrac0 := sx - float32(sx0)
 			xFrac1 := 1 - xFrac0
 			sx0 += bias.X
 			sx1 := sx0 + 1
@@ -2865,7 +2864,7 @@ func (ablInterpolator) transform_RGBA_Gray_Src(dst *image.RGBA, dr, adr image.Re
 
 			sy -= 0.5
 			sy0 := int(sy)
-			yFrac0 := sy - float64(sy0)
+			yFrac0 := sy - float32(sy0)
 			yFrac1 := 1 - yFrac0
 			sy0 += bias.Y
 			sy1 := sy0 + 1
@@ -2879,17 +2878,17 @@ func (ablInterpolator) transform_RGBA_Gray_Src(dst *image.RGBA, dr, adr image.Re
 
 			s00i := (sy0-src.Rect.Min.Y)*src.Stride + (sx0 - src.Rect.Min.X)
 			s00ru := uint32(src.Pix[s00i]) * 0x101
-			s00r := float64(s00ru)
+			s00r := float32(s00ru)
 			s10i := (sy0-src.Rect.Min.Y)*src.Stride + (sx1 - src.Rect.Min.X)
 			s10ru := uint32(src.Pix[s10i]) * 0x101
-			s10r := float64(s10ru)
+			s10r := float32(s10ru)
 			s10r = xFrac1*s00r + xFrac0*s10r
 			s01i := (sy1-src.Rect.Min.Y)*src.Stride + (sx0 - src.Rect.Min.X)
 			s01ru := uint32(src.Pix[s01i]) * 0x101
-			s01r := float64(s01ru)
+			s01r := float32(s01ru)
 			s11i := (sy1-src.Rect.Min.Y)*src.Stride + (sx1 - src.Rect.Min.X)
 			s11ru := uint32(src.Pix[s11i]) * 0x101
-			s11r := float64(s11ru)
+			s11r := float32(s11ru)
 			s11r = xFrac1*s01r + xFrac0*s11r
 			s11r = yFrac1*s10r + yFrac0*s11r
 			pr := uint32(s11r)
@@ -2902,12 +2901,12 @@ func (ablInterpolator) transform_RGBA_Gray_Src(dst *image.RGBA, dr, adr image.Re
 	}
 }
 
-func (ablInterpolator) transform_RGBA_NRGBA_Over(dst *image.RGBA, dr, adr image.Rectangle, d2s *f64.Aff3, src *image.NRGBA, sr image.Rectangle, bias image.Point, opts *Options) {
+func (ablInterpolator) transform_RGBA_NRGBA_Over(dst *image.RGBA, dr, adr image.Rectangle, d2s *f32.Aff3, src *image.NRGBA, sr image.Rectangle, bias image.Point, opts *Options) {
 	for dy := int32(adr.Min.Y); dy < int32(adr.Max.Y); dy++ {
-		dyf := float64(dr.Min.Y+int(dy)) + 0.5
+		dyf := float32(dr.Min.Y+int(dy)) + 0.5
 		d := (dr.Min.Y+int(dy)-dst.Rect.Min.Y)*dst.Stride + (dr.Min.X+adr.Min.X-dst.Rect.Min.X)*4
 		for dx := int32(adr.Min.X); dx < int32(adr.Max.X); dx, d = dx+1, d+4 {
-			dxf := float64(dr.Min.X+int(dx)) + 0.5
+			dxf := float32(dr.Min.X+int(dx)) + 0.5
 			sx := d2s[0]*dxf + d2s[1]*dyf + d2s[2]
 			sy := d2s[3]*dxf + d2s[4]*dyf + d2s[5]
 			if !(image.Point{int(sx) + bias.X, int(sy) + bias.Y}).In(sr) {
@@ -2916,7 +2915,7 @@ func (ablInterpolator) transform_RGBA_NRGBA_Over(dst *image.RGBA, dr, adr image.
 
 			sx -= 0.5
 			sx0 := int(sx)
-			xFrac0 := sx - float64(sx0)
+			xFrac0 := sx - float32(sx0)
 			xFrac1 := 1 - xFrac0
 			sx0 += bias.X
 			sx1 := sx0 + 1
@@ -2930,7 +2929,7 @@ func (ablInterpolator) transform_RGBA_NRGBA_Over(dst *image.RGBA, dr, adr image.
 
 			sy -= 0.5
 			sy0 := int(sy)
-			yFrac0 := sy - float64(sy0)
+			yFrac0 := sy - float32(sy0)
 			yFrac1 := 1 - yFrac0
 			sy0 += bias.Y
 			sy1 := sy0 + 1
@@ -2947,19 +2946,19 @@ func (ablInterpolator) transform_RGBA_NRGBA_Over(dst *image.RGBA, dr, adr image.
 			s00ru := uint32(src.Pix[s00i+0]) * s00au / 0xff
 			s00gu := uint32(src.Pix[s00i+1]) * s00au / 0xff
 			s00bu := uint32(src.Pix[s00i+2]) * s00au / 0xff
-			s00r := float64(s00ru)
-			s00g := float64(s00gu)
-			s00b := float64(s00bu)
-			s00a := float64(s00au)
+			s00r := float32(s00ru)
+			s00g := float32(s00gu)
+			s00b := float32(s00bu)
+			s00a := float32(s00au)
 			s10i := (sy0-src.Rect.Min.Y)*src.Stride + (sx1-src.Rect.Min.X)*4
 			s10au := uint32(src.Pix[s10i+3]) * 0x101
 			s10ru := uint32(src.Pix[s10i+0]) * s10au / 0xff
 			s10gu := uint32(src.Pix[s10i+1]) * s10au / 0xff
 			s10bu := uint32(src.Pix[s10i+2]) * s10au / 0xff
-			s10r := float64(s10ru)
-			s10g := float64(s10gu)
-			s10b := float64(s10bu)
-			s10a := float64(s10au)
+			s10r := float32(s10ru)
+			s10g := float32(s10gu)
+			s10b := float32(s10bu)
+			s10a := float32(s10au)
 			s10r = xFrac1*s00r + xFrac0*s10r
 			s10g = xFrac1*s00g + xFrac0*s10g
 			s10b = xFrac1*s00b + xFrac0*s10b
@@ -2969,19 +2968,19 @@ func (ablInterpolator) transform_RGBA_NRGBA_Over(dst *image.RGBA, dr, adr image.
 			s01ru := uint32(src.Pix[s01i+0]) * s01au / 0xff
 			s01gu := uint32(src.Pix[s01i+1]) * s01au / 0xff
 			s01bu := uint32(src.Pix[s01i+2]) * s01au / 0xff
-			s01r := float64(s01ru)
-			s01g := float64(s01gu)
-			s01b := float64(s01bu)
-			s01a := float64(s01au)
+			s01r := float32(s01ru)
+			s01g := float32(s01gu)
+			s01b := float32(s01bu)
+			s01a := float32(s01au)
 			s11i := (sy1-src.Rect.Min.Y)*src.Stride + (sx1-src.Rect.Min.X)*4
 			s11au := uint32(src.Pix[s11i+3]) * 0x101
 			s11ru := uint32(src.Pix[s11i+0]) * s11au / 0xff
 			s11gu := uint32(src.Pix[s11i+1]) * s11au / 0xff
 			s11bu := uint32(src.Pix[s11i+2]) * s11au / 0xff
-			s11r := float64(s11ru)
-			s11g := float64(s11gu)
-			s11b := float64(s11bu)
-			s11a := float64(s11au)
+			s11r := float32(s11ru)
+			s11g := float32(s11gu)
+			s11b := float32(s11bu)
+			s11a := float32(s11au)
 			s11r = xFrac1*s01r + xFrac0*s11r
 			s11g = xFrac1*s01g + xFrac0*s11g
 			s11b = xFrac1*s01b + xFrac0*s11b
@@ -3003,12 +3002,12 @@ func (ablInterpolator) transform_RGBA_NRGBA_Over(dst *image.RGBA, dr, adr image.
 	}
 }
 
-func (ablInterpolator) transform_RGBA_NRGBA_Src(dst *image.RGBA, dr, adr image.Rectangle, d2s *f64.Aff3, src *image.NRGBA, sr image.Rectangle, bias image.Point, opts *Options) {
+func (ablInterpolator) transform_RGBA_NRGBA_Src(dst *image.RGBA, dr, adr image.Rectangle, d2s *f32.Aff3, src *image.NRGBA, sr image.Rectangle, bias image.Point, opts *Options) {
 	for dy := int32(adr.Min.Y); dy < int32(adr.Max.Y); dy++ {
-		dyf := float64(dr.Min.Y+int(dy)) + 0.5
+		dyf := float32(dr.Min.Y+int(dy)) + 0.5
 		d := (dr.Min.Y+int(dy)-dst.Rect.Min.Y)*dst.Stride + (dr.Min.X+adr.Min.X-dst.Rect.Min.X)*4
 		for dx := int32(adr.Min.X); dx < int32(adr.Max.X); dx, d = dx+1, d+4 {
-			dxf := float64(dr.Min.X+int(dx)) + 0.5
+			dxf := float32(dr.Min.X+int(dx)) + 0.5
 			sx := d2s[0]*dxf + d2s[1]*dyf + d2s[2]
 			sy := d2s[3]*dxf + d2s[4]*dyf + d2s[5]
 			if !(image.Point{int(sx) + bias.X, int(sy) + bias.Y}).In(sr) {
@@ -3017,7 +3016,7 @@ func (ablInterpolator) transform_RGBA_NRGBA_Src(dst *image.RGBA, dr, adr image.R
 
 			sx -= 0.5
 			sx0 := int(sx)
-			xFrac0 := sx - float64(sx0)
+			xFrac0 := sx - float32(sx0)
 			xFrac1 := 1 - xFrac0
 			sx0 += bias.X
 			sx1 := sx0 + 1
@@ -3031,7 +3030,7 @@ func (ablInterpolator) transform_RGBA_NRGBA_Src(dst *image.RGBA, dr, adr image.R
 
 			sy -= 0.5
 			sy0 := int(sy)
-			yFrac0 := sy - float64(sy0)
+			yFrac0 := sy - float32(sy0)
 			yFrac1 := 1 - yFrac0
 			sy0 += bias.Y
 			sy1 := sy0 + 1
@@ -3048,19 +3047,19 @@ func (ablInterpolator) transform_RGBA_NRGBA_Src(dst *image.RGBA, dr, adr image.R
 			s00ru := uint32(src.Pix[s00i+0]) * s00au / 0xff
 			s00gu := uint32(src.Pix[s00i+1]) * s00au / 0xff
 			s00bu := uint32(src.Pix[s00i+2]) * s00au / 0xff
-			s00r := float64(s00ru)
-			s00g := float64(s00gu)
-			s00b := float64(s00bu)
-			s00a := float64(s00au)
+			s00r := float32(s00ru)
+			s00g := float32(s00gu)
+			s00b := float32(s00bu)
+			s00a := float32(s00au)
 			s10i := (sy0-src.Rect.Min.Y)*src.Stride + (sx1-src.Rect.Min.X)*4
 			s10au := uint32(src.Pix[s10i+3]) * 0x101
 			s10ru := uint32(src.Pix[s10i+0]) * s10au / 0xff
 			s10gu := uint32(src.Pix[s10i+1]) * s10au / 0xff
 			s10bu := uint32(src.Pix[s10i+2]) * s10au / 0xff
-			s10r := float64(s10ru)
-			s10g := float64(s10gu)
-			s10b := float64(s10bu)
-			s10a := float64(s10au)
+			s10r := float32(s10ru)
+			s10g := float32(s10gu)
+			s10b := float32(s10bu)
+			s10a := float32(s10au)
 			s10r = xFrac1*s00r + xFrac0*s10r
 			s10g = xFrac1*s00g + xFrac0*s10g
 			s10b = xFrac1*s00b + xFrac0*s10b
@@ -3070,19 +3069,19 @@ func (ablInterpolator) transform_RGBA_NRGBA_Src(dst *image.RGBA, dr, adr image.R
 			s01ru := uint32(src.Pix[s01i+0]) * s01au / 0xff
 			s01gu := uint32(src.Pix[s01i+1]) * s01au / 0xff
 			s01bu := uint32(src.Pix[s01i+2]) * s01au / 0xff
-			s01r := float64(s01ru)
-			s01g := float64(s01gu)
-			s01b := float64(s01bu)
-			s01a := float64(s01au)
+			s01r := float32(s01ru)
+			s01g := float32(s01gu)
+			s01b := float32(s01bu)
+			s01a := float32(s01au)
 			s11i := (sy1-src.Rect.Min.Y)*src.Stride + (sx1-src.Rect.Min.X)*4
 			s11au := uint32(src.Pix[s11i+3]) * 0x101
 			s11ru := uint32(src.Pix[s11i+0]) * s11au / 0xff
 			s11gu := uint32(src.Pix[s11i+1]) * s11au / 0xff
 			s11bu := uint32(src.Pix[s11i+2]) * s11au / 0xff
-			s11r := float64(s11ru)
-			s11g := float64(s11gu)
-			s11b := float64(s11bu)
-			s11a := float64(s11au)
+			s11r := float32(s11ru)
+			s11g := float32(s11gu)
+			s11b := float32(s11bu)
+			s11a := float32(s11au)
 			s11r = xFrac1*s01r + xFrac0*s11r
 			s11g = xFrac1*s01g + xFrac0*s11g
 			s11b = xFrac1*s01b + xFrac0*s11b
@@ -3103,12 +3102,12 @@ func (ablInterpolator) transform_RGBA_NRGBA_Src(dst *image.RGBA, dr, adr image.R
 	}
 }
 
-func (ablInterpolator) transform_RGBA_RGBA_Over(dst *image.RGBA, dr, adr image.Rectangle, d2s *f64.Aff3, src *image.RGBA, sr image.Rectangle, bias image.Point, opts *Options) {
+func (ablInterpolator) transform_RGBA_RGBA_Over(dst *image.RGBA, dr, adr image.Rectangle, d2s *f32.Aff3, src *image.RGBA, sr image.Rectangle, bias image.Point, opts *Options) {
 	for dy := int32(adr.Min.Y); dy < int32(adr.Max.Y); dy++ {
-		dyf := float64(dr.Min.Y+int(dy)) + 0.5
+		dyf := float32(dr.Min.Y+int(dy)) + 0.5
 		d := (dr.Min.Y+int(dy)-dst.Rect.Min.Y)*dst.Stride + (dr.Min.X+adr.Min.X-dst.Rect.Min.X)*4
 		for dx := int32(adr.Min.X); dx < int32(adr.Max.X); dx, d = dx+1, d+4 {
-			dxf := float64(dr.Min.X+int(dx)) + 0.5
+			dxf := float32(dr.Min.X+int(dx)) + 0.5
 			sx := d2s[0]*dxf + d2s[1]*dyf + d2s[2]
 			sy := d2s[3]*dxf + d2s[4]*dyf + d2s[5]
 			if !(image.Point{int(sx) + bias.X, int(sy) + bias.Y}).In(sr) {
@@ -3117,7 +3116,7 @@ func (ablInterpolator) transform_RGBA_RGBA_Over(dst *image.RGBA, dr, adr image.R
 
 			sx -= 0.5
 			sx0 := int(sx)
-			xFrac0 := sx - float64(sx0)
+			xFrac0 := sx - float32(sx0)
 			xFrac1 := 1 - xFrac0
 			sx0 += bias.X
 			sx1 := sx0 + 1
@@ -3131,7 +3130,7 @@ func (ablInterpolator) transform_RGBA_RGBA_Over(dst *image.RGBA, dr, adr image.R
 
 			sy -= 0.5
 			sy0 := int(sy)
-			yFrac0 := sy - float64(sy0)
+			yFrac0 := sy - float32(sy0)
 			yFrac1 := 1 - yFrac0
 			sy0 += bias.Y
 			sy1 := sy0 + 1
@@ -3148,19 +3147,19 @@ func (ablInterpolator) transform_RGBA_RGBA_Over(dst *image.RGBA, dr, adr image.R
 			s00gu := uint32(src.Pix[s00i+1]) * 0x101
 			s00bu := uint32(src.Pix[s00i+2]) * 0x101
 			s00au := uint32(src.Pix[s00i+3]) * 0x101
-			s00r := float64(s00ru)
-			s00g := float64(s00gu)
-			s00b := float64(s00bu)
-			s00a := float64(s00au)
+			s00r := float32(s00ru)
+			s00g := float32(s00gu)
+			s00b := float32(s00bu)
+			s00a := float32(s00au)
 			s10i := (sy0-src.Rect.Min.Y)*src.Stride + (sx1-src.Rect.Min.X)*4
 			s10ru := uint32(src.Pix[s10i+0]) * 0x101
 			s10gu := uint32(src.Pix[s10i+1]) * 0x101
 			s10bu := uint32(src.Pix[s10i+2]) * 0x101
 			s10au := uint32(src.Pix[s10i+3]) * 0x101
-			s10r := float64(s10ru)
-			s10g := float64(s10gu)
-			s10b := float64(s10bu)
-			s10a := float64(s10au)
+			s10r := float32(s10ru)
+			s10g := float32(s10gu)
+			s10b := float32(s10bu)
+			s10a := float32(s10au)
 			s10r = xFrac1*s00r + xFrac0*s10r
 			s10g = xFrac1*s00g + xFrac0*s10g
 			s10b = xFrac1*s00b + xFrac0*s10b
@@ -3170,19 +3169,19 @@ func (ablInterpolator) transform_RGBA_RGBA_Over(dst *image.RGBA, dr, adr image.R
 			s01gu := uint32(src.Pix[s01i+1]) * 0x101
 			s01bu := uint32(src.Pix[s01i+2]) * 0x101
 			s01au := uint32(src.Pix[s01i+3]) * 0x101
-			s01r := float64(s01ru)
-			s01g := float64(s01gu)
-			s01b := float64(s01bu)
-			s01a := float64(s01au)
+			s01r := float32(s01ru)
+			s01g := float32(s01gu)
+			s01b := float32(s01bu)
+			s01a := float32(s01au)
 			s11i := (sy1-src.Rect.Min.Y)*src.Stride + (sx1-src.Rect.Min.X)*4
 			s11ru := uint32(src.Pix[s11i+0]) * 0x101
 			s11gu := uint32(src.Pix[s11i+1]) * 0x101
 			s11bu := uint32(src.Pix[s11i+2]) * 0x101
 			s11au := uint32(src.Pix[s11i+3]) * 0x101
-			s11r := float64(s11ru)
-			s11g := float64(s11gu)
-			s11b := float64(s11bu)
-			s11a := float64(s11au)
+			s11r := float32(s11ru)
+			s11g := float32(s11gu)
+			s11b := float32(s11bu)
+			s11a := float32(s11au)
 			s11r = xFrac1*s01r + xFrac0*s11r
 			s11g = xFrac1*s01g + xFrac0*s11g
 			s11b = xFrac1*s01b + xFrac0*s11b
@@ -3204,12 +3203,12 @@ func (ablInterpolator) transform_RGBA_RGBA_Over(dst *image.RGBA, dr, adr image.R
 	}
 }
 
-func (ablInterpolator) transform_RGBA_RGBA_Src(dst *image.RGBA, dr, adr image.Rectangle, d2s *f64.Aff3, src *image.RGBA, sr image.Rectangle, bias image.Point, opts *Options) {
+func (ablInterpolator) transform_RGBA_RGBA_Src(dst *image.RGBA, dr, adr image.Rectangle, d2s *f32.Aff3, src *image.RGBA, sr image.Rectangle, bias image.Point, opts *Options) {
 	for dy := int32(adr.Min.Y); dy < int32(adr.Max.Y); dy++ {
-		dyf := float64(dr.Min.Y+int(dy)) + 0.5
+		dyf := float32(dr.Min.Y+int(dy)) + 0.5
 		d := (dr.Min.Y+int(dy)-dst.Rect.Min.Y)*dst.Stride + (dr.Min.X+adr.Min.X-dst.Rect.Min.X)*4
 		for dx := int32(adr.Min.X); dx < int32(adr.Max.X); dx, d = dx+1, d+4 {
-			dxf := float64(dr.Min.X+int(dx)) + 0.5
+			dxf := float32(dr.Min.X+int(dx)) + 0.5
 			sx := d2s[0]*dxf + d2s[1]*dyf + d2s[2]
 			sy := d2s[3]*dxf + d2s[4]*dyf + d2s[5]
 			if !(image.Point{int(sx) + bias.X, int(sy) + bias.Y}).In(sr) {
@@ -3218,7 +3217,7 @@ func (ablInterpolator) transform_RGBA_RGBA_Src(dst *image.RGBA, dr, adr image.Re
 
 			sx -= 0.5
 			sx0 := int(sx)
-			xFrac0 := sx - float64(sx0)
+			xFrac0 := sx - float32(sx0)
 			xFrac1 := 1 - xFrac0
 			sx0 += bias.X
 			sx1 := sx0 + 1
@@ -3232,7 +3231,7 @@ func (ablInterpolator) transform_RGBA_RGBA_Src(dst *image.RGBA, dr, adr image.Re
 
 			sy -= 0.5
 			sy0 := int(sy)
-			yFrac0 := sy - float64(sy0)
+			yFrac0 := sy - float32(sy0)
 			yFrac1 := 1 - yFrac0
 			sy0 += bias.Y
 			sy1 := sy0 + 1
@@ -3249,19 +3248,19 @@ func (ablInterpolator) transform_RGBA_RGBA_Src(dst *image.RGBA, dr, adr image.Re
 			s00gu := uint32(src.Pix[s00i+1]) * 0x101
 			s00bu := uint32(src.Pix[s00i+2]) * 0x101
 			s00au := uint32(src.Pix[s00i+3]) * 0x101
-			s00r := float64(s00ru)
-			s00g := float64(s00gu)
-			s00b := float64(s00bu)
-			s00a := float64(s00au)
+			s00r := float32(s00ru)
+			s00g := float32(s00gu)
+			s00b := float32(s00bu)
+			s00a := float32(s00au)
 			s10i := (sy0-src.Rect.Min.Y)*src.Stride + (sx1-src.Rect.Min.X)*4
 			s10ru := uint32(src.Pix[s10i+0]) * 0x101
 			s10gu := uint32(src.Pix[s10i+1]) * 0x101
 			s10bu := uint32(src.Pix[s10i+2]) * 0x101
 			s10au := uint32(src.Pix[s10i+3]) * 0x101
-			s10r := float64(s10ru)
-			s10g := float64(s10gu)
-			s10b := float64(s10bu)
-			s10a := float64(s10au)
+			s10r := float32(s10ru)
+			s10g := float32(s10gu)
+			s10b := float32(s10bu)
+			s10a := float32(s10au)
 			s10r = xFrac1*s00r + xFrac0*s10r
 			s10g = xFrac1*s00g + xFrac0*s10g
 			s10b = xFrac1*s00b + xFrac0*s10b
@@ -3271,19 +3270,19 @@ func (ablInterpolator) transform_RGBA_RGBA_Src(dst *image.RGBA, dr, adr image.Re
 			s01gu := uint32(src.Pix[s01i+1]) * 0x101
 			s01bu := uint32(src.Pix[s01i+2]) * 0x101
 			s01au := uint32(src.Pix[s01i+3]) * 0x101
-			s01r := float64(s01ru)
-			s01g := float64(s01gu)
-			s01b := float64(s01bu)
-			s01a := float64(s01au)
+			s01r := float32(s01ru)
+			s01g := float32(s01gu)
+			s01b := float32(s01bu)
+			s01a := float32(s01au)
 			s11i := (sy1-src.Rect.Min.Y)*src.Stride + (sx1-src.Rect.Min.X)*4
 			s11ru := uint32(src.Pix[s11i+0]) * 0x101
 			s11gu := uint32(src.Pix[s11i+1]) * 0x101
 			s11bu := uint32(src.Pix[s11i+2]) * 0x101
 			s11au := uint32(src.Pix[s11i+3]) * 0x101
-			s11r := float64(s11ru)
-			s11g := float64(s11gu)
-			s11b := float64(s11bu)
-			s11a := float64(s11au)
+			s11r := float32(s11ru)
+			s11g := float32(s11gu)
+			s11b := float32(s11bu)
+			s11a := float32(s11au)
 			s11r = xFrac1*s01r + xFrac0*s11r
 			s11g = xFrac1*s01g + xFrac0*s11g
 			s11b = xFrac1*s01b + xFrac0*s11b
@@ -3304,12 +3303,12 @@ func (ablInterpolator) transform_RGBA_RGBA_Src(dst *image.RGBA, dr, adr image.Re
 	}
 }
 
-func (ablInterpolator) transform_RGBA_YCbCr444_Src(dst *image.RGBA, dr, adr image.Rectangle, d2s *f64.Aff3, src *image.YCbCr, sr image.Rectangle, bias image.Point, opts *Options) {
+func (ablInterpolator) transform_RGBA_YCbCr444_Src(dst *image.RGBA, dr, adr image.Rectangle, d2s *f32.Aff3, src *image.YCbCr, sr image.Rectangle, bias image.Point, opts *Options) {
 	for dy := int32(adr.Min.Y); dy < int32(adr.Max.Y); dy++ {
-		dyf := float64(dr.Min.Y+int(dy)) + 0.5
+		dyf := float32(dr.Min.Y+int(dy)) + 0.5
 		d := (dr.Min.Y+int(dy)-dst.Rect.Min.Y)*dst.Stride + (dr.Min.X+adr.Min.X-dst.Rect.Min.X)*4
 		for dx := int32(adr.Min.X); dx < int32(adr.Max.X); dx, d = dx+1, d+4 {
-			dxf := float64(dr.Min.X+int(dx)) + 0.5
+			dxf := float32(dr.Min.X+int(dx)) + 0.5
 			sx := d2s[0]*dxf + d2s[1]*dyf + d2s[2]
 			sy := d2s[3]*dxf + d2s[4]*dyf + d2s[5]
 			if !(image.Point{int(sx) + bias.X, int(sy) + bias.Y}).In(sr) {
@@ -3318,7 +3317,7 @@ func (ablInterpolator) transform_RGBA_YCbCr444_Src(dst *image.RGBA, dr, adr imag
 
 			sx -= 0.5
 			sx0 := int(sx)
-			xFrac0 := sx - float64(sx0)
+			xFrac0 := sx - float32(sx0)
 			xFrac1 := 1 - xFrac0
 			sx0 += bias.X
 			sx1 := sx0 + 1
@@ -3332,7 +3331,7 @@ func (ablInterpolator) transform_RGBA_YCbCr444_Src(dst *image.RGBA, dr, adr imag
 
 			sy -= 0.5
 			sy0 := int(sy)
-			yFrac0 := sy - float64(sy0)
+			yFrac0 := sy - float32(sy0)
 			yFrac1 := 1 - yFrac0
 			sy0 += bias.Y
 			sy1 := sy0 + 1
@@ -3370,9 +3369,9 @@ func (ablInterpolator) transform_RGBA_YCbCr444_Src(dst *image.RGBA, dr, adr imag
 				s00bu = 0xffff
 			}
 
-			s00r := float64(s00ru)
-			s00g := float64(s00gu)
-			s00b := float64(s00bu)
+			s00r := float32(s00ru)
+			s00g := float32(s00gu)
+			s00b := float32(s00bu)
 			s10i := (sy0-src.Rect.Min.Y)*src.YStride + (sx1 - src.Rect.Min.X)
 			s10j := (sy0-src.Rect.Min.Y)*src.CStride + (sx1 - src.Rect.Min.X)
 
@@ -3399,9 +3398,9 @@ func (ablInterpolator) transform_RGBA_YCbCr444_Src(dst *image.RGBA, dr, adr imag
 				s10bu = 0xffff
 			}
 
-			s10r := float64(s10ru)
-			s10g := float64(s10gu)
-			s10b := float64(s10bu)
+			s10r := float32(s10ru)
+			s10g := float32(s10gu)
+			s10b := float32(s10bu)
 			s10r = xFrac1*s00r + xFrac0*s10r
 			s10g = xFrac1*s00g + xFrac0*s10g
 			s10b = xFrac1*s00b + xFrac0*s10b
@@ -3431,9 +3430,9 @@ func (ablInterpolator) transform_RGBA_YCbCr444_Src(dst *image.RGBA, dr, adr imag
 				s01bu = 0xffff
 			}
 
-			s01r := float64(s01ru)
-			s01g := float64(s01gu)
-			s01b := float64(s01bu)
+			s01r := float32(s01ru)
+			s01g := float32(s01gu)
+			s01b := float32(s01bu)
 			s11i := (sy1-src.Rect.Min.Y)*src.YStride + (sx1 - src.Rect.Min.X)
 			s11j := (sy1-src.Rect.Min.Y)*src.CStride + (sx1 - src.Rect.Min.X)
 
@@ -3460,9 +3459,9 @@ func (ablInterpolator) transform_RGBA_YCbCr444_Src(dst *image.RGBA, dr, adr imag
 				s11bu = 0xffff
 			}
 
-			s11r := float64(s11ru)
-			s11g := float64(s11gu)
-			s11b := float64(s11bu)
+			s11r := float32(s11ru)
+			s11g := float32(s11gu)
+			s11b := float32(s11bu)
 			s11r = xFrac1*s01r + xFrac0*s11r
 			s11g = xFrac1*s01g + xFrac0*s11g
 			s11b = xFrac1*s01b + xFrac0*s11b
@@ -3480,12 +3479,12 @@ func (ablInterpolator) transform_RGBA_YCbCr444_Src(dst *image.RGBA, dr, adr imag
 	}
 }
 
-func (ablInterpolator) transform_RGBA_YCbCr422_Src(dst *image.RGBA, dr, adr image.Rectangle, d2s *f64.Aff3, src *image.YCbCr, sr image.Rectangle, bias image.Point, opts *Options) {
+func (ablInterpolator) transform_RGBA_YCbCr422_Src(dst *image.RGBA, dr, adr image.Rectangle, d2s *f32.Aff3, src *image.YCbCr, sr image.Rectangle, bias image.Point, opts *Options) {
 	for dy := int32(adr.Min.Y); dy < int32(adr.Max.Y); dy++ {
-		dyf := float64(dr.Min.Y+int(dy)) + 0.5
+		dyf := float32(dr.Min.Y+int(dy)) + 0.5
 		d := (dr.Min.Y+int(dy)-dst.Rect.Min.Y)*dst.Stride + (dr.Min.X+adr.Min.X-dst.Rect.Min.X)*4
 		for dx := int32(adr.Min.X); dx < int32(adr.Max.X); dx, d = dx+1, d+4 {
-			dxf := float64(dr.Min.X+int(dx)) + 0.5
+			dxf := float32(dr.Min.X+int(dx)) + 0.5
 			sx := d2s[0]*dxf + d2s[1]*dyf + d2s[2]
 			sy := d2s[3]*dxf + d2s[4]*dyf + d2s[5]
 			if !(image.Point{int(sx) + bias.X, int(sy) + bias.Y}).In(sr) {
@@ -3494,7 +3493,7 @@ func (ablInterpolator) transform_RGBA_YCbCr422_Src(dst *image.RGBA, dr, adr imag
 
 			sx -= 0.5
 			sx0 := int(sx)
-			xFrac0 := sx - float64(sx0)
+			xFrac0 := sx - float32(sx0)
 			xFrac1 := 1 - xFrac0
 			sx0 += bias.X
 			sx1 := sx0 + 1
@@ -3508,7 +3507,7 @@ func (ablInterpolator) transform_RGBA_YCbCr422_Src(dst *image.RGBA, dr, adr imag
 
 			sy -= 0.5
 			sy0 := int(sy)
-			yFrac0 := sy - float64(sy0)
+			yFrac0 := sy - float32(sy0)
 			yFrac1 := 1 - yFrac0
 			sy0 += bias.Y
 			sy1 := sy0 + 1
@@ -3546,9 +3545,9 @@ func (ablInterpolator) transform_RGBA_YCbCr422_Src(dst *image.RGBA, dr, adr imag
 				s00bu = 0xffff
 			}
 
-			s00r := float64(s00ru)
-			s00g := float64(s00gu)
-			s00b := float64(s00bu)
+			s00r := float32(s00ru)
+			s00g := float32(s00gu)
+			s00b := float32(s00bu)
 			s10i := (sy0-src.Rect.Min.Y)*src.YStride + (sx1 - src.Rect.Min.X)
 			s10j := (sy0-src.Rect.Min.Y)*src.CStride + ((sx1)/2 - src.Rect.Min.X/2)
 
@@ -3575,9 +3574,9 @@ func (ablInterpolator) transform_RGBA_YCbCr422_Src(dst *image.RGBA, dr, adr imag
 				s10bu = 0xffff
 			}
 
-			s10r := float64(s10ru)
-			s10g := float64(s10gu)
-			s10b := float64(s10bu)
+			s10r := float32(s10ru)
+			s10g := float32(s10gu)
+			s10b := float32(s10bu)
 			s10r = xFrac1*s00r + xFrac0*s10r
 			s10g = xFrac1*s00g + xFrac0*s10g
 			s10b = xFrac1*s00b + xFrac0*s10b
@@ -3607,9 +3606,9 @@ func (ablInterpolator) transform_RGBA_YCbCr422_Src(dst *image.RGBA, dr, adr imag
 				s01bu = 0xffff
 			}
 
-			s01r := float64(s01ru)
-			s01g := float64(s01gu)
-			s01b := float64(s01bu)
+			s01r := float32(s01ru)
+			s01g := float32(s01gu)
+			s01b := float32(s01bu)
 			s11i := (sy1-src.Rect.Min.Y)*src.YStride + (sx1 - src.Rect.Min.X)
 			s11j := (sy1-src.Rect.Min.Y)*src.CStride + ((sx1)/2 - src.Rect.Min.X/2)
 
@@ -3636,9 +3635,9 @@ func (ablInterpolator) transform_RGBA_YCbCr422_Src(dst *image.RGBA, dr, adr imag
 				s11bu = 0xffff
 			}
 
-			s11r := float64(s11ru)
-			s11g := float64(s11gu)
-			s11b := float64(s11bu)
+			s11r := float32(s11ru)
+			s11g := float32(s11gu)
+			s11b := float32(s11bu)
 			s11r = xFrac1*s01r + xFrac0*s11r
 			s11g = xFrac1*s01g + xFrac0*s11g
 			s11b = xFrac1*s01b + xFrac0*s11b
@@ -3656,12 +3655,12 @@ func (ablInterpolator) transform_RGBA_YCbCr422_Src(dst *image.RGBA, dr, adr imag
 	}
 }
 
-func (ablInterpolator) transform_RGBA_YCbCr420_Src(dst *image.RGBA, dr, adr image.Rectangle, d2s *f64.Aff3, src *image.YCbCr, sr image.Rectangle, bias image.Point, opts *Options) {
+func (ablInterpolator) transform_RGBA_YCbCr420_Src(dst *image.RGBA, dr, adr image.Rectangle, d2s *f32.Aff3, src *image.YCbCr, sr image.Rectangle, bias image.Point, opts *Options) {
 	for dy := int32(adr.Min.Y); dy < int32(adr.Max.Y); dy++ {
-		dyf := float64(dr.Min.Y+int(dy)) + 0.5
+		dyf := float32(dr.Min.Y+int(dy)) + 0.5
 		d := (dr.Min.Y+int(dy)-dst.Rect.Min.Y)*dst.Stride + (dr.Min.X+adr.Min.X-dst.Rect.Min.X)*4
 		for dx := int32(adr.Min.X); dx < int32(adr.Max.X); dx, d = dx+1, d+4 {
-			dxf := float64(dr.Min.X+int(dx)) + 0.5
+			dxf := float32(dr.Min.X+int(dx)) + 0.5
 			sx := d2s[0]*dxf + d2s[1]*dyf + d2s[2]
 			sy := d2s[3]*dxf + d2s[4]*dyf + d2s[5]
 			if !(image.Point{int(sx) + bias.X, int(sy) + bias.Y}).In(sr) {
@@ -3670,7 +3669,7 @@ func (ablInterpolator) transform_RGBA_YCbCr420_Src(dst *image.RGBA, dr, adr imag
 
 			sx -= 0.5
 			sx0 := int(sx)
-			xFrac0 := sx - float64(sx0)
+			xFrac0 := sx - float32(sx0)
 			xFrac1 := 1 - xFrac0
 			sx0 += bias.X
 			sx1 := sx0 + 1
@@ -3684,7 +3683,7 @@ func (ablInterpolator) transform_RGBA_YCbCr420_Src(dst *image.RGBA, dr, adr imag
 
 			sy -= 0.5
 			sy0 := int(sy)
-			yFrac0 := sy - float64(sy0)
+			yFrac0 := sy - float32(sy0)
 			yFrac1 := 1 - yFrac0
 			sy0 += bias.Y
 			sy1 := sy0 + 1
@@ -3722,9 +3721,9 @@ func (ablInterpolator) transform_RGBA_YCbCr420_Src(dst *image.RGBA, dr, adr imag
 				s00bu = 0xffff
 			}
 
-			s00r := float64(s00ru)
-			s00g := float64(s00gu)
-			s00b := float64(s00bu)
+			s00r := float32(s00ru)
+			s00g := float32(s00gu)
+			s00b := float32(s00bu)
 			s10i := (sy0-src.Rect.Min.Y)*src.YStride + (sx1 - src.Rect.Min.X)
 			s10j := ((sy0)/2-src.Rect.Min.Y/2)*src.CStride + ((sx1)/2 - src.Rect.Min.X/2)
 
@@ -3751,9 +3750,9 @@ func (ablInterpolator) transform_RGBA_YCbCr420_Src(dst *image.RGBA, dr, adr imag
 				s10bu = 0xffff
 			}
 
-			s10r := float64(s10ru)
-			s10g := float64(s10gu)
-			s10b := float64(s10bu)
+			s10r := float32(s10ru)
+			s10g := float32(s10gu)
+			s10b := float32(s10bu)
 			s10r = xFrac1*s00r + xFrac0*s10r
 			s10g = xFrac1*s00g + xFrac0*s10g
 			s10b = xFrac1*s00b + xFrac0*s10b
@@ -3783,9 +3782,9 @@ func (ablInterpolator) transform_RGBA_YCbCr420_Src(dst *image.RGBA, dr, adr imag
 				s01bu = 0xffff
 			}
 
-			s01r := float64(s01ru)
-			s01g := float64(s01gu)
-			s01b := float64(s01bu)
+			s01r := float32(s01ru)
+			s01g := float32(s01gu)
+			s01b := float32(s01bu)
 			s11i := (sy1-src.Rect.Min.Y)*src.YStride + (sx1 - src.Rect.Min.X)
 			s11j := ((sy1)/2-src.Rect.Min.Y/2)*src.CStride + ((sx1)/2 - src.Rect.Min.X/2)
 
@@ -3812,9 +3811,9 @@ func (ablInterpolator) transform_RGBA_YCbCr420_Src(dst *image.RGBA, dr, adr imag
 				s11bu = 0xffff
 			}
 
-			s11r := float64(s11ru)
-			s11g := float64(s11gu)
-			s11b := float64(s11bu)
+			s11r := float32(s11ru)
+			s11g := float32(s11gu)
+			s11b := float32(s11bu)
 			s11r = xFrac1*s01r + xFrac0*s11r
 			s11g = xFrac1*s01g + xFrac0*s11g
 			s11b = xFrac1*s01b + xFrac0*s11b
@@ -3832,12 +3831,12 @@ func (ablInterpolator) transform_RGBA_YCbCr420_Src(dst *image.RGBA, dr, adr imag
 	}
 }
 
-func (ablInterpolator) transform_RGBA_YCbCr440_Src(dst *image.RGBA, dr, adr image.Rectangle, d2s *f64.Aff3, src *image.YCbCr, sr image.Rectangle, bias image.Point, opts *Options) {
+func (ablInterpolator) transform_RGBA_YCbCr440_Src(dst *image.RGBA, dr, adr image.Rectangle, d2s *f32.Aff3, src *image.YCbCr, sr image.Rectangle, bias image.Point, opts *Options) {
 	for dy := int32(adr.Min.Y); dy < int32(adr.Max.Y); dy++ {
-		dyf := float64(dr.Min.Y+int(dy)) + 0.5
+		dyf := float32(dr.Min.Y+int(dy)) + 0.5
 		d := (dr.Min.Y+int(dy)-dst.Rect.Min.Y)*dst.Stride + (dr.Min.X+adr.Min.X-dst.Rect.Min.X)*4
 		for dx := int32(adr.Min.X); dx < int32(adr.Max.X); dx, d = dx+1, d+4 {
-			dxf := float64(dr.Min.X+int(dx)) + 0.5
+			dxf := float32(dr.Min.X+int(dx)) + 0.5
 			sx := d2s[0]*dxf + d2s[1]*dyf + d2s[2]
 			sy := d2s[3]*dxf + d2s[4]*dyf + d2s[5]
 			if !(image.Point{int(sx) + bias.X, int(sy) + bias.Y}).In(sr) {
@@ -3846,7 +3845,7 @@ func (ablInterpolator) transform_RGBA_YCbCr440_Src(dst *image.RGBA, dr, adr imag
 
 			sx -= 0.5
 			sx0 := int(sx)
-			xFrac0 := sx - float64(sx0)
+			xFrac0 := sx - float32(sx0)
 			xFrac1 := 1 - xFrac0
 			sx0 += bias.X
 			sx1 := sx0 + 1
@@ -3860,7 +3859,7 @@ func (ablInterpolator) transform_RGBA_YCbCr440_Src(dst *image.RGBA, dr, adr imag
 
 			sy -= 0.5
 			sy0 := int(sy)
-			yFrac0 := sy - float64(sy0)
+			yFrac0 := sy - float32(sy0)
 			yFrac1 := 1 - yFrac0
 			sy0 += bias.Y
 			sy1 := sy0 + 1
@@ -3898,9 +3897,9 @@ func (ablInterpolator) transform_RGBA_YCbCr440_Src(dst *image.RGBA, dr, adr imag
 				s00bu = 0xffff
 			}
 
-			s00r := float64(s00ru)
-			s00g := float64(s00gu)
-			s00b := float64(s00bu)
+			s00r := float32(s00ru)
+			s00g := float32(s00gu)
+			s00b := float32(s00bu)
 			s10i := (sy0-src.Rect.Min.Y)*src.YStride + (sx1 - src.Rect.Min.X)
 			s10j := ((sy0)/2-src.Rect.Min.Y/2)*src.CStride + (sx1 - src.Rect.Min.X)
 
@@ -3927,9 +3926,9 @@ func (ablInterpolator) transform_RGBA_YCbCr440_Src(dst *image.RGBA, dr, adr imag
 				s10bu = 0xffff
 			}
 
-			s10r := float64(s10ru)
-			s10g := float64(s10gu)
-			s10b := float64(s10bu)
+			s10r := float32(s10ru)
+			s10g := float32(s10gu)
+			s10b := float32(s10bu)
 			s10r = xFrac1*s00r + xFrac0*s10r
 			s10g = xFrac1*s00g + xFrac0*s10g
 			s10b = xFrac1*s00b + xFrac0*s10b
@@ -3959,9 +3958,9 @@ func (ablInterpolator) transform_RGBA_YCbCr440_Src(dst *image.RGBA, dr, adr imag
 				s01bu = 0xffff
 			}
 
-			s01r := float64(s01ru)
-			s01g := float64(s01gu)
-			s01b := float64(s01bu)
+			s01r := float32(s01ru)
+			s01g := float32(s01gu)
+			s01b := float32(s01bu)
 			s11i := (sy1-src.Rect.Min.Y)*src.YStride + (sx1 - src.Rect.Min.X)
 			s11j := ((sy1)/2-src.Rect.Min.Y/2)*src.CStride + (sx1 - src.Rect.Min.X)
 
@@ -3988,9 +3987,9 @@ func (ablInterpolator) transform_RGBA_YCbCr440_Src(dst *image.RGBA, dr, adr imag
 				s11bu = 0xffff
 			}
 
-			s11r := float64(s11ru)
-			s11g := float64(s11gu)
-			s11b := float64(s11bu)
+			s11r := float32(s11ru)
+			s11g := float32(s11gu)
+			s11b := float32(s11bu)
 			s11r = xFrac1*s01r + xFrac0*s11r
 			s11g = xFrac1*s01g + xFrac0*s11g
 			s11b = xFrac1*s01b + xFrac0*s11b
@@ -4008,12 +4007,12 @@ func (ablInterpolator) transform_RGBA_YCbCr440_Src(dst *image.RGBA, dr, adr imag
 	}
 }
 
-func (ablInterpolator) transform_RGBA_Image_Over(dst *image.RGBA, dr, adr image.Rectangle, d2s *f64.Aff3, src image.Image, sr image.Rectangle, bias image.Point, opts *Options) {
+func (ablInterpolator) transform_RGBA_Image_Over(dst *image.RGBA, dr, adr image.Rectangle, d2s *f32.Aff3, src image.Image, sr image.Rectangle, bias image.Point, opts *Options) {
 	for dy := int32(adr.Min.Y); dy < int32(adr.Max.Y); dy++ {
-		dyf := float64(dr.Min.Y+int(dy)) + 0.5
+		dyf := float32(dr.Min.Y+int(dy)) + 0.5
 		d := (dr.Min.Y+int(dy)-dst.Rect.Min.Y)*dst.Stride + (dr.Min.X+adr.Min.X-dst.Rect.Min.X)*4
 		for dx := int32(adr.Min.X); dx < int32(adr.Max.X); dx, d = dx+1, d+4 {
-			dxf := float64(dr.Min.X+int(dx)) + 0.5
+			dxf := float32(dr.Min.X+int(dx)) + 0.5
 			sx := d2s[0]*dxf + d2s[1]*dyf + d2s[2]
 			sy := d2s[3]*dxf + d2s[4]*dyf + d2s[5]
 			if !(image.Point{int(sx) + bias.X, int(sy) + bias.Y}).In(sr) {
@@ -4022,7 +4021,7 @@ func (ablInterpolator) transform_RGBA_Image_Over(dst *image.RGBA, dr, adr image.
 
 			sx -= 0.5
 			sx0 := int(sx)
-			xFrac0 := sx - float64(sx0)
+			xFrac0 := sx - float32(sx0)
 			xFrac1 := 1 - xFrac0
 			sx0 += bias.X
 			sx1 := sx0 + 1
@@ -4036,7 +4035,7 @@ func (ablInterpolator) transform_RGBA_Image_Over(dst *image.RGBA, dr, adr image.
 
 			sy -= 0.5
 			sy0 := int(sy)
-			yFrac0 := sy - float64(sy0)
+			yFrac0 := sy - float32(sy0)
 			yFrac1 := 1 - yFrac0
 			sy0 += bias.Y
 			sy1 := sy0 + 1
@@ -4049,29 +4048,29 @@ func (ablInterpolator) transform_RGBA_Image_Over(dst *image.RGBA, dr, adr image.
 			}
 
 			s00ru, s00gu, s00bu, s00au := src.At(sx0, sy0).RGBA()
-			s00r := float64(s00ru)
-			s00g := float64(s00gu)
-			s00b := float64(s00bu)
-			s00a := float64(s00au)
+			s00r := float32(s00ru)
+			s00g := float32(s00gu)
+			s00b := float32(s00bu)
+			s00a := float32(s00au)
 			s10ru, s10gu, s10bu, s10au := src.At(sx1, sy0).RGBA()
-			s10r := float64(s10ru)
-			s10g := float64(s10gu)
-			s10b := float64(s10bu)
-			s10a := float64(s10au)
+			s10r := float32(s10ru)
+			s10g := float32(s10gu)
+			s10b := float32(s10bu)
+			s10a := float32(s10au)
 			s10r = xFrac1*s00r + xFrac0*s10r
 			s10g = xFrac1*s00g + xFrac0*s10g
 			s10b = xFrac1*s00b + xFrac0*s10b
 			s10a = xFrac1*s00a + xFrac0*s10a
 			s01ru, s01gu, s01bu, s01au := src.At(sx0, sy1).RGBA()
-			s01r := float64(s01ru)
-			s01g := float64(s01gu)
-			s01b := float64(s01bu)
-			s01a := float64(s01au)
+			s01r := float32(s01ru)
+			s01g := float32(s01gu)
+			s01b := float32(s01bu)
+			s01a := float32(s01au)
 			s11ru, s11gu, s11bu, s11au := src.At(sx1, sy1).RGBA()
-			s11r := float64(s11ru)
-			s11g := float64(s11gu)
-			s11b := float64(s11bu)
-			s11a := float64(s11au)
+			s11r := float32(s11ru)
+			s11g := float32(s11gu)
+			s11b := float32(s11bu)
+			s11a := float32(s11au)
 			s11r = xFrac1*s01r + xFrac0*s11r
 			s11g = xFrac1*s01g + xFrac0*s11g
 			s11b = xFrac1*s01b + xFrac0*s11b
@@ -4177,15 +4176,15 @@ func (ablInterpolator) transform_RGBA_Image_Src(dst *image.RGBA, dr, adr image.R
 	}
 }
 
-func (ablInterpolator) transform_Image_Image_Over(dst Image, dr, adr image.Rectangle, d2s *f64.Aff3, src image.Image, sr image.Rectangle, bias image.Point, opts *Options) {
+func (ablInterpolator) transform_Image_Image_Over(dst Image, dr, adr image.Rectangle, d2s *f32.Aff3, src image.Image, sr image.Rectangle, bias image.Point, opts *Options) {
 	srcMask, smp := opts.SrcMask, opts.SrcMaskP
 	dstMask, dmp := opts.DstMask, opts.DstMaskP
 	dstColorRGBA64 := &color.RGBA64{}
 	dstColor := color.Color(dstColorRGBA64)
 	for dy := int32(adr.Min.Y); dy < int32(adr.Max.Y); dy++ {
-		dyf := float64(dr.Min.Y+int(dy)) + 0.5
+		dyf := float32(dr.Min.Y+int(dy)) + 0.5
 		for dx := int32(adr.Min.X); dx < int32(adr.Max.X); dx++ {
-			dxf := float64(dr.Min.X+int(dx)) + 0.5
+			dxf := float32(dr.Min.X+int(dx)) + 0.5
 			sx := d2s[0]*dxf + d2s[1]*dyf + d2s[2]
 			sy := d2s[3]*dxf + d2s[4]*dyf + d2s[5]
 			if !(image.Point{int(sx) + bias.X, int(sy) + bias.Y}).In(sr) {
@@ -4194,7 +4193,7 @@ func (ablInterpolator) transform_Image_Image_Over(dst Image, dr, adr image.Recta
 
 			sx -= 0.5
 			sx0 := int(sx)
-			xFrac0 := sx - float64(sx0)
+			xFrac0 := sx - float32(sx0)
 			xFrac1 := 1 - xFrac0
 			sx0 += bias.X
 			sx1 := sx0 + 1
@@ -4208,7 +4207,7 @@ func (ablInterpolator) transform_Image_Image_Over(dst Image, dr, adr image.Recta
 
 			sy -= 0.5
 			sy0 := int(sy)
-			yFrac0 := sy - float64(sy0)
+			yFrac0 := sy - float32(sy0)
 			yFrac1 := 1 - yFrac0
 			sy0 += bias.Y
 			sy1 := sy0 + 1
@@ -4228,10 +4227,10 @@ func (ablInterpolator) transform_Image_Image_Over(dst Image, dr, adr image.Recta
 				s00bu = s00bu * ma / 0xffff
 				s00au = s00au * ma / 0xffff
 			}
-			s00r := float64(s00ru)
-			s00g := float64(s00gu)
-			s00b := float64(s00bu)
-			s00a := float64(s00au)
+			s00r := float32(s00ru)
+			s00g := float32(s00gu)
+			s00b := float32(s00bu)
+			s00a := float32(s00au)
 			s10ru, s10gu, s10bu, s10au := src.At(sx1, sy0).RGBA()
 			if srcMask != nil {
 				_, _, _, ma := srcMask.At(smp.X+sx1, smp.Y+sy0).RGBA()
@@ -4240,10 +4239,10 @@ func (ablInterpolator) transform_Image_Image_Over(dst Image, dr, adr image.Recta
 				s10bu = s10bu * ma / 0xffff
 				s10au = s10au * ma / 0xffff
 			}
-			s10r := float64(s10ru)
-			s10g := float64(s10gu)
-			s10b := float64(s10bu)
-			s10a := float64(s10au)
+			s10r := float32(s10ru)
+			s10g := float32(s10gu)
+			s10b := float32(s10bu)
+			s10a := float32(s10au)
 			s10r = xFrac1*s00r + xFrac0*s10r
 			s10g = xFrac1*s00g + xFrac0*s10g
 			s10b = xFrac1*s00b + xFrac0*s10b
@@ -4256,10 +4255,10 @@ func (ablInterpolator) transform_Image_Image_Over(dst Image, dr, adr image.Recta
 				s01bu = s01bu * ma / 0xffff
 				s01au = s01au * ma / 0xffff
 			}
-			s01r := float64(s01ru)
-			s01g := float64(s01gu)
-			s01b := float64(s01bu)
-			s01a := float64(s01au)
+			s01r := float32(s01ru)
+			s01g := float32(s01gu)
+			s01b := float32(s01bu)
+			s01a := float32(s01au)
 			s11ru, s11gu, s11bu, s11au := src.At(sx1, sy1).RGBA()
 			if srcMask != nil {
 				_, _, _, ma := srcMask.At(smp.X+sx1, smp.Y+sy1).RGBA()
@@ -4268,10 +4267,10 @@ func (ablInterpolator) transform_Image_Image_Over(dst Image, dr, adr image.Recta
 				s11bu = s11bu * ma / 0xffff
 				s11au = s11au * ma / 0xffff
 			}
-			s11r := float64(s11ru)
-			s11g := float64(s11gu)
-			s11b := float64(s11bu)
-			s11a := float64(s11au)
+			s11r := float32(s11ru)
+			s11g := float32(s11gu)
+			s11b := float32(s11bu)
+			s11a := float32(s11au)
 			s11r = xFrac1*s01r + xFrac0*s11r
 			s11g = xFrac1*s01g + xFrac0*s11g
 			s11b = xFrac1*s01b + xFrac0*s11b
@@ -4302,15 +4301,15 @@ func (ablInterpolator) transform_Image_Image_Over(dst Image, dr, adr image.Recta
 	}
 }
 
-func (ablInterpolator) transform_Image_Image_Src(dst Image, dr, adr image.Rectangle, d2s *f64.Aff3, src image.Image, sr image.Rectangle, bias image.Point, opts *Options) {
+func (ablInterpolator) transform_Image_Image_Src(dst Image, dr, adr image.Rectangle, d2s *f32.Aff3, src image.Image, sr image.Rectangle, bias image.Point, opts *Options) {
 	srcMask, smp := opts.SrcMask, opts.SrcMaskP
 	dstMask, dmp := opts.DstMask, opts.DstMaskP
 	dstColorRGBA64 := &color.RGBA64{}
 	dstColor := color.Color(dstColorRGBA64)
 	for dy := int32(adr.Min.Y); dy < int32(adr.Max.Y); dy++ {
-		dyf := float64(dr.Min.Y+int(dy)) + 0.5
+		dyf := float32(dr.Min.Y+int(dy)) + 0.5
 		for dx := int32(adr.Min.X); dx < int32(adr.Max.X); dx++ {
-			dxf := float64(dr.Min.X+int(dx)) + 0.5
+			dxf := float32(dr.Min.X+int(dx)) + 0.5
 			sx := d2s[0]*dxf + d2s[1]*dyf + d2s[2]
 			sy := d2s[3]*dxf + d2s[4]*dyf + d2s[5]
 			if !(image.Point{int(sx) + bias.X, int(sy) + bias.Y}).In(sr) {
@@ -4319,7 +4318,7 @@ func (ablInterpolator) transform_Image_Image_Src(dst Image, dr, adr image.Rectan
 
 			sx -= 0.5
 			sx0 := int(sx)
-			xFrac0 := sx - float64(sx0)
+			xFrac0 := sx - float32(sx0)
 			xFrac1 := 1 - xFrac0
 			sx0 += bias.X
 			sx1 := sx0 + 1
@@ -4333,7 +4332,7 @@ func (ablInterpolator) transform_Image_Image_Src(dst Image, dr, adr image.Rectan
 
 			sy -= 0.5
 			sy0 := int(sy)
-			yFrac0 := sy - float64(sy0)
+			yFrac0 := sy - float32(sy0)
 			yFrac1 := 1 - yFrac0
 			sy0 += bias.Y
 			sy1 := sy0 + 1
@@ -4353,10 +4352,10 @@ func (ablInterpolator) transform_Image_Image_Src(dst Image, dr, adr image.Rectan
 				s00bu = s00bu * ma / 0xffff
 				s00au = s00au * ma / 0xffff
 			}
-			s00r := float64(s00ru)
-			s00g := float64(s00gu)
-			s00b := float64(s00bu)
-			s00a := float64(s00au)
+			s00r := float32(s00ru)
+			s00g := float32(s00gu)
+			s00b := float32(s00bu)
+			s00a := float32(s00au)
 			s10ru, s10gu, s10bu, s10au := src.At(sx1, sy0).RGBA()
 			if srcMask != nil {
 				_, _, _, ma := srcMask.At(smp.X+sx1, smp.Y+sy0).RGBA()
@@ -4365,10 +4364,10 @@ func (ablInterpolator) transform_Image_Image_Src(dst Image, dr, adr image.Rectan
 				s10bu = s10bu * ma / 0xffff
 				s10au = s10au * ma / 0xffff
 			}
-			s10r := float64(s10ru)
-			s10g := float64(s10gu)
-			s10b := float64(s10bu)
-			s10a := float64(s10au)
+			s10r := float32(s10ru)
+			s10g := float32(s10gu)
+			s10b := float32(s10bu)
+			s10a := float32(s10au)
 			s10r = xFrac1*s00r + xFrac0*s10r
 			s10g = xFrac1*s00g + xFrac0*s10g
 			s10b = xFrac1*s00b + xFrac0*s10b
@@ -4381,10 +4380,10 @@ func (ablInterpolator) transform_Image_Image_Src(dst Image, dr, adr image.Rectan
 				s01bu = s01bu * ma / 0xffff
 				s01au = s01au * ma / 0xffff
 			}
-			s01r := float64(s01ru)
-			s01g := float64(s01gu)
-			s01b := float64(s01bu)
-			s01a := float64(s01au)
+			s01r := float32(s01ru)
+			s01g := float32(s01gu)
+			s01b := float32(s01bu)
+			s01a := float32(s01au)
 			s11ru, s11gu, s11bu, s11au := src.At(sx1, sy1).RGBA()
 			if srcMask != nil {
 				_, _, _, ma := srcMask.At(smp.X+sx1, smp.Y+sy1).RGBA()
@@ -4393,10 +4392,10 @@ func (ablInterpolator) transform_Image_Image_Src(dst Image, dr, adr image.Rectan
 				s11bu = s11bu * ma / 0xffff
 				s11au = s11au * ma / 0xffff
 			}
-			s11r := float64(s11ru)
-			s11g := float64(s11gu)
-			s11b := float64(s11bu)
-			s11a := float64(s11au)
+			s11r := float32(s11ru)
+			s11g := float32(s11gu)
+			s11b := float32(s11bu)
+			s11a := float32(s11au)
 			s11r = xFrac1*s01r + xFrac0*s11r
 			s11g = xFrac1*s01g + xFrac0*s11g
 			s11b = xFrac1*s01b + xFrac0*s11b
@@ -4464,9 +4463,9 @@ func (z *kernelScaler) Scale(dst Image, dr image.Rectangle, src image.Image, sr 
 	// Create a temporary buffer:
 	// scaleX distributes the source image's columns over the temporary image.
 	// scaleY distributes the temporary image's rows over the destination image.
-	var tmp [][4]float64
+	var tmp [][4]float32
 	if z.pool.New != nil {
-		tmpp := z.pool.Get().(*[][4]float64)
+		tmpp := z.pool.Get().(*[][4]float32)
 		defer z.pool.Put(tmpp)
 		tmp = *tmpp
 	} else {
@@ -4533,7 +4532,7 @@ func (z *kernelScaler) Scale(dst Image, dr image.Rectangle, src image.Image, sr 
 	}
 }
 
-func (q *Kernel) Transform(dst Image, s2d f64.Aff3, src image.Image, sr image.Rectangle, op Op, opts *Options) {
+func (q *Kernel) Transform(dst Image, s2d f32.Aff3, src image.Image, sr image.Rectangle, op Op, opts *Options) {
 	var o Options
 	if opts != nil {
 		o = *opts
@@ -4560,8 +4559,8 @@ func (q *Kernel) Transform(dst Image, s2d f64.Aff3, src image.Image, sr image.Re
 	bias := transformRect(&d2s, &adr).Min
 	bias.X--
 	bias.Y--
-	d2s[2] -= float64(bias.X)
-	d2s[5] -= float64(bias.Y)
+	d2s[2] -= float32(bias.X)
+	d2s[5] -= float32(bias.Y)
 	// Make adr relative to dr.Min.
 	adr = adr.Sub(dr.Min)
 
@@ -4646,18 +4645,18 @@ func (q *Kernel) Transform(dst Image, s2d f64.Aff3, src image.Image, sr image.Re
 	}
 }
 
-func (z *kernelScaler) scaleX_Gray(tmp [][4]float64, src *image.Gray, sr image.Rectangle, opts *Options) {
+func (z *kernelScaler) scaleX_Gray(tmp [][4]float32, src *image.Gray, sr image.Rectangle, opts *Options) {
 	t := 0
 	for y := int32(0); y < z.sh; y++ {
 		for _, s := range z.horizontal.sources {
-			var pr float64
+			var pr float32
 			for _, c := range z.horizontal.contribs[s.i:s.j] {
 				pi := (sr.Min.Y+int(y)-src.Rect.Min.Y)*src.Stride + (sr.Min.X + int(c.coord) - src.Rect.Min.X)
 				pru := uint32(src.Pix[pi]) * 0x101
-				pr += float64(pru) * c.weight
+				pr += float32(pru) * c.weight
 			}
 			pr *= s.invTotalWeightFFFF
-			tmp[t] = [4]float64{
+			tmp[t] = [4]float32{
 				pr,
 				pr,
 				pr,
@@ -4668,23 +4667,23 @@ func (z *kernelScaler) scaleX_Gray(tmp [][4]float64, src *image.Gray, sr image.R
 	}
 }
 
-func (z *kernelScaler) scaleX_NRGBA(tmp [][4]float64, src *image.NRGBA, sr image.Rectangle, opts *Options) {
+func (z *kernelScaler) scaleX_NRGBA(tmp [][4]float32, src *image.NRGBA, sr image.Rectangle, opts *Options) {
 	t := 0
 	for y := int32(0); y < z.sh; y++ {
 		for _, s := range z.horizontal.sources {
-			var pr, pg, pb, pa float64
+			var pr, pg, pb, pa float32
 			for _, c := range z.horizontal.contribs[s.i:s.j] {
 				pi := (sr.Min.Y+int(y)-src.Rect.Min.Y)*src.Stride + (sr.Min.X+int(c.coord)-src.Rect.Min.X)*4
 				pau := uint32(src.Pix[pi+3]) * 0x101
 				pru := uint32(src.Pix[pi+0]) * pau / 0xff
 				pgu := uint32(src.Pix[pi+1]) * pau / 0xff
 				pbu := uint32(src.Pix[pi+2]) * pau / 0xff
-				pr += float64(pru) * c.weight
-				pg += float64(pgu) * c.weight
-				pb += float64(pbu) * c.weight
-				pa += float64(pau) * c.weight
+				pr += float32(pru) * c.weight
+				pg += float32(pgu) * c.weight
+				pb += float32(pbu) * c.weight
+				pa += float32(pau) * c.weight
 			}
-			tmp[t] = [4]float64{
+			tmp[t] = [4]float32{
 				pr * s.invTotalWeightFFFF,
 				pg * s.invTotalWeightFFFF,
 				pb * s.invTotalWeightFFFF,
@@ -4695,23 +4694,23 @@ func (z *kernelScaler) scaleX_NRGBA(tmp [][4]float64, src *image.NRGBA, sr image
 	}
 }
 
-func (z *kernelScaler) scaleX_RGBA(tmp [][4]float64, src *image.RGBA, sr image.Rectangle, opts *Options) {
+func (z *kernelScaler) scaleX_RGBA(tmp [][4]float32, src *image.RGBA, sr image.Rectangle, opts *Options) {
 	t := 0
 	for y := int32(0); y < z.sh; y++ {
 		for _, s := range z.horizontal.sources {
-			var pr, pg, pb, pa float64
+			var pr, pg, pb, pa float32
 			for _, c := range z.horizontal.contribs[s.i:s.j] {
 				pi := (sr.Min.Y+int(y)-src.Rect.Min.Y)*src.Stride + (sr.Min.X+int(c.coord)-src.Rect.Min.X)*4
 				pru := uint32(src.Pix[pi+0]) * 0x101
 				pgu := uint32(src.Pix[pi+1]) * 0x101
 				pbu := uint32(src.Pix[pi+2]) * 0x101
 				pau := uint32(src.Pix[pi+3]) * 0x101
-				pr += float64(pru) * c.weight
-				pg += float64(pgu) * c.weight
-				pb += float64(pbu) * c.weight
-				pa += float64(pau) * c.weight
+				pr += float32(pru) * c.weight
+				pg += float32(pgu) * c.weight
+				pb += float32(pbu) * c.weight
+				pa += float32(pau) * c.weight
 			}
-			tmp[t] = [4]float64{
+			tmp[t] = [4]float32{
 				pr * s.invTotalWeightFFFF,
 				pg * s.invTotalWeightFFFF,
 				pb * s.invTotalWeightFFFF,
@@ -4722,11 +4721,11 @@ func (z *kernelScaler) scaleX_RGBA(tmp [][4]float64, src *image.RGBA, sr image.R
 	}
 }
 
-func (z *kernelScaler) scaleX_YCbCr444(tmp [][4]float64, src *image.YCbCr, sr image.Rectangle, opts *Options) {
+func (z *kernelScaler) scaleX_YCbCr444(tmp [][4]float32, src *image.YCbCr, sr image.Rectangle, opts *Options) {
 	t := 0
 	for y := int32(0); y < z.sh; y++ {
 		for _, s := range z.horizontal.sources {
-			var pr, pg, pb float64
+			var pr, pg, pb float32
 			for _, c := range z.horizontal.contribs[s.i:s.j] {
 				pi := (sr.Min.Y+int(y)-src.Rect.Min.Y)*src.YStride + (sr.Min.X + int(c.coord) - src.Rect.Min.X)
 				pj := (sr.Min.Y+int(y)-src.Rect.Min.Y)*src.CStride + (sr.Min.X + int(c.coord) - src.Rect.Min.X)
@@ -4754,11 +4753,11 @@ func (z *kernelScaler) scaleX_YCbCr444(tmp [][4]float64, src *image.YCbCr, sr im
 					pbu = 0xffff
 				}
 
-				pr += float64(pru) * c.weight
-				pg += float64(pgu) * c.weight
-				pb += float64(pbu) * c.weight
+				pr += float32(pru) * c.weight
+				pg += float32(pgu) * c.weight
+				pb += float32(pbu) * c.weight
 			}
-			tmp[t] = [4]float64{
+			tmp[t] = [4]float32{
 				pr * s.invTotalWeightFFFF,
 				pg * s.invTotalWeightFFFF,
 				pb * s.invTotalWeightFFFF,
@@ -4769,11 +4768,11 @@ func (z *kernelScaler) scaleX_YCbCr444(tmp [][4]float64, src *image.YCbCr, sr im
 	}
 }
 
-func (z *kernelScaler) scaleX_YCbCr422(tmp [][4]float64, src *image.YCbCr, sr image.Rectangle, opts *Options) {
+func (z *kernelScaler) scaleX_YCbCr422(tmp [][4]float32, src *image.YCbCr, sr image.Rectangle, opts *Options) {
 	t := 0
 	for y := int32(0); y < z.sh; y++ {
 		for _, s := range z.horizontal.sources {
-			var pr, pg, pb float64
+			var pr, pg, pb float32
 			for _, c := range z.horizontal.contribs[s.i:s.j] {
 				pi := (sr.Min.Y+int(y)-src.Rect.Min.Y)*src.YStride + (sr.Min.X + int(c.coord) - src.Rect.Min.X)
 				pj := (sr.Min.Y+int(y)-src.Rect.Min.Y)*src.CStride + ((sr.Min.X+int(c.coord))/2 - src.Rect.Min.X/2)
@@ -4801,11 +4800,11 @@ func (z *kernelScaler) scaleX_YCbCr422(tmp [][4]float64, src *image.YCbCr, sr im
 					pbu = 0xffff
 				}
 
-				pr += float64(pru) * c.weight
-				pg += float64(pgu) * c.weight
-				pb += float64(pbu) * c.weight
+				pr += float32(pru) * c.weight
+				pg += float32(pgu) * c.weight
+				pb += float32(pbu) * c.weight
 			}
-			tmp[t] = [4]float64{
+			tmp[t] = [4]float32{
 				pr * s.invTotalWeightFFFF,
 				pg * s.invTotalWeightFFFF,
 				pb * s.invTotalWeightFFFF,
@@ -4816,11 +4815,11 @@ func (z *kernelScaler) scaleX_YCbCr422(tmp [][4]float64, src *image.YCbCr, sr im
 	}
 }
 
-func (z *kernelScaler) scaleX_YCbCr420(tmp [][4]float64, src *image.YCbCr, sr image.Rectangle, opts *Options) {
+func (z *kernelScaler) scaleX_YCbCr420(tmp [][4]float32, src *image.YCbCr, sr image.Rectangle, opts *Options) {
 	t := 0
 	for y := int32(0); y < z.sh; y++ {
 		for _, s := range z.horizontal.sources {
-			var pr, pg, pb float64
+			var pr, pg, pb float32
 			for _, c := range z.horizontal.contribs[s.i:s.j] {
 				pi := (sr.Min.Y+int(y)-src.Rect.Min.Y)*src.YStride + (sr.Min.X + int(c.coord) - src.Rect.Min.X)
 				pj := ((sr.Min.Y+int(y))/2-src.Rect.Min.Y/2)*src.CStride + ((sr.Min.X+int(c.coord))/2 - src.Rect.Min.X/2)
@@ -4848,11 +4847,11 @@ func (z *kernelScaler) scaleX_YCbCr420(tmp [][4]float64, src *image.YCbCr, sr im
 					pbu = 0xffff
 				}
 
-				pr += float64(pru) * c.weight
-				pg += float64(pgu) * c.weight
-				pb += float64(pbu) * c.weight
+				pr += float32(pru) * c.weight
+				pg += float32(pgu) * c.weight
+				pb += float32(pbu) * c.weight
 			}
-			tmp[t] = [4]float64{
+			tmp[t] = [4]float32{
 				pr * s.invTotalWeightFFFF,
 				pg * s.invTotalWeightFFFF,
 				pb * s.invTotalWeightFFFF,
@@ -4863,11 +4862,11 @@ func (z *kernelScaler) scaleX_YCbCr420(tmp [][4]float64, src *image.YCbCr, sr im
 	}
 }
 
-func (z *kernelScaler) scaleX_YCbCr440(tmp [][4]float64, src *image.YCbCr, sr image.Rectangle, opts *Options) {
+func (z *kernelScaler) scaleX_YCbCr440(tmp [][4]float32, src *image.YCbCr, sr image.Rectangle, opts *Options) {
 	t := 0
 	for y := int32(0); y < z.sh; y++ {
 		for _, s := range z.horizontal.sources {
-			var pr, pg, pb float64
+			var pr, pg, pb float32
 			for _, c := range z.horizontal.contribs[s.i:s.j] {
 				pi := (sr.Min.Y+int(y)-src.Rect.Min.Y)*src.YStride + (sr.Min.X + int(c.coord) - src.Rect.Min.X)
 				pj := ((sr.Min.Y+int(y))/2-src.Rect.Min.Y/2)*src.CStride + (sr.Min.X + int(c.coord) - src.Rect.Min.X)
@@ -4895,11 +4894,11 @@ func (z *kernelScaler) scaleX_YCbCr440(tmp [][4]float64, src *image.YCbCr, sr im
 					pbu = 0xffff
 				}
 
-				pr += float64(pru) * c.weight
-				pg += float64(pgu) * c.weight
-				pb += float64(pbu) * c.weight
+				pr += float32(pru) * c.weight
+				pg += float32(pgu) * c.weight
+				pb += float32(pbu) * c.weight
 			}
-			tmp[t] = [4]float64{
+			tmp[t] = [4]float32{
 				pr * s.invTotalWeightFFFF,
 				pg * s.invTotalWeightFFFF,
 				pb * s.invTotalWeightFFFF,
@@ -4910,12 +4909,12 @@ func (z *kernelScaler) scaleX_YCbCr440(tmp [][4]float64, src *image.YCbCr, sr im
 	}
 }
 
-func (z *kernelScaler) scaleX_Image(tmp [][4]float64, src image.Image, sr image.Rectangle, opts *Options) {
+func (z *kernelScaler) scaleX_Image(tmp [][4]float32, src image.Image, sr image.Rectangle, opts *Options) {
 	t := 0
 	srcMask, smp := opts.SrcMask, opts.SrcMaskP
 	for y := int32(0); y < z.sh; y++ {
 		for _, s := range z.horizontal.sources {
-			var pr, pg, pb, pa float64
+			var pr, pg, pb, pa float32
 			for _, c := range z.horizontal.contribs[s.i:s.j] {
 				pru, pgu, pbu, pau := src.At(sr.Min.X+int(c.coord), sr.Min.Y+int(y)).RGBA()
 				if srcMask != nil {
@@ -4925,12 +4924,12 @@ func (z *kernelScaler) scaleX_Image(tmp [][4]float64, src image.Image, sr image.
 					pbu = pbu * ma / 0xffff
 					pau = pau * ma / 0xffff
 				}
-				pr += float64(pru) * c.weight
-				pg += float64(pgu) * c.weight
-				pb += float64(pbu) * c.weight
-				pa += float64(pau) * c.weight
+				pr += float32(pru) * c.weight
+				pg += float32(pgu) * c.weight
+				pb += float32(pbu) * c.weight
+				pa += float32(pau) * c.weight
 			}
-			tmp[t] = [4]float64{
+			tmp[t] = [4]float32{
 				pr * s.invTotalWeightFFFF,
 				pg * s.invTotalWeightFFFF,
 				pb * s.invTotalWeightFFFF,
@@ -4941,11 +4940,11 @@ func (z *kernelScaler) scaleX_Image(tmp [][4]float64, src image.Image, sr image.
 	}
 }
 
-func (z *kernelScaler) scaleY_RGBA_Over(dst *image.RGBA, dr, adr image.Rectangle, tmp [][4]float64, opts *Options) {
+func (z *kernelScaler) scaleY_RGBA_Over(dst *image.RGBA, dr, adr image.Rectangle, tmp [][4]float32, opts *Options) {
 	for dx := int32(adr.Min.X); dx < int32(adr.Max.X); dx++ {
 		d := (dr.Min.Y+adr.Min.Y-dst.Rect.Min.Y)*dst.Stride + (dr.Min.X+int(dx)-dst.Rect.Min.X)*4
 		for _, s := range z.vertical.sources[adr.Min.Y:adr.Max.Y] {
-			var pr, pg, pb, pa float64
+			var pr, pg, pb, pa float32
 			for _, c := range z.vertical.contribs[s.i:s.j] {
 				p := &tmp[c.coord*z.dw+dx]
 				pr += p[0] * c.weight
@@ -4978,11 +4977,11 @@ func (z *kernelScaler) scaleY_RGBA_Over(dst *image.RGBA, dr, adr image.Rectangle
 	}
 }
 
-func (z *kernelScaler) scaleY_RGBA_Src(dst *image.RGBA, dr, adr image.Rectangle, tmp [][4]float64, opts *Options) {
+func (z *kernelScaler) scaleY_RGBA_Src(dst *image.RGBA, dr, adr image.Rectangle, tmp [][4]float32, opts *Options) {
 	for dx := int32(adr.Min.X); dx < int32(adr.Max.X); dx++ {
 		d := (dr.Min.Y+adr.Min.Y-dst.Rect.Min.Y)*dst.Stride + (dr.Min.X+int(dx)-dst.Rect.Min.X)*4
 		for _, s := range z.vertical.sources[adr.Min.Y:adr.Max.Y] {
-			var pr, pg, pb, pa float64
+			var pr, pg, pb, pa float32
 			for _, c := range z.vertical.contribs[s.i:s.j] {
 				p := &tmp[c.coord*z.dw+dx]
 				pr += p[0] * c.weight
@@ -5010,13 +5009,13 @@ func (z *kernelScaler) scaleY_RGBA_Src(dst *image.RGBA, dr, adr image.Rectangle,
 	}
 }
 
-func (z *kernelScaler) scaleY_Image_Over(dst Image, dr, adr image.Rectangle, tmp [][4]float64, opts *Options) {
+func (z *kernelScaler) scaleY_Image_Over(dst Image, dr, adr image.Rectangle, tmp [][4]float32, opts *Options) {
 	dstMask, dmp := opts.DstMask, opts.DstMaskP
 	dstColorRGBA64 := &color.RGBA64{}
 	dstColor := color.Color(dstColorRGBA64)
 	for dx := int32(adr.Min.X); dx < int32(adr.Max.X); dx++ {
 		for dy, s := range z.vertical.sources[adr.Min.Y:adr.Max.Y] {
-			var pr, pg, pb, pa float64
+			var pr, pg, pb, pa float32
 			for _, c := range z.vertical.contribs[s.i:s.j] {
 				p := &tmp[c.coord*z.dw+dx]
 				pr += p[0] * c.weight
@@ -5057,13 +5056,13 @@ func (z *kernelScaler) scaleY_Image_Over(dst Image, dr, adr image.Rectangle, tmp
 	}
 }
 
-func (z *kernelScaler) scaleY_Image_Src(dst Image, dr, adr image.Rectangle, tmp [][4]float64, opts *Options) {
+func (z *kernelScaler) scaleY_Image_Src(dst Image, dr, adr image.Rectangle, tmp [][4]float32, opts *Options) {
 	dstMask, dmp := opts.DstMask, opts.DstMaskP
 	dstColorRGBA64 := &color.RGBA64{}
 	dstColor := color.Color(dstColorRGBA64)
 	for dx := int32(adr.Min.X); dx < int32(adr.Max.X); dx++ {
 		for dy, s := range z.vertical.sources[adr.Min.Y:adr.Max.Y] {
-			var pr, pg, pb, pa float64
+			var pr, pg, pb, pa float32
 			for _, c := range z.vertical.contribs[s.i:s.j] {
 				p := &tmp[c.coord*z.dw+dx]
 				pr += p[0] * c.weight
@@ -5106,28 +5105,28 @@ func (z *kernelScaler) scaleY_Image_Src(dst Image, dr, adr image.Rectangle, tmp 
 	}
 }
 
-func (q *Kernel) transform_RGBA_Gray_Src(dst *image.RGBA, dr, adr image.Rectangle, d2s *f64.Aff3, src *image.Gray, sr image.Rectangle, bias image.Point, xscale, yscale float64, opts *Options) {
+func (q *Kernel) transform_RGBA_Gray_Src(dst *image.RGBA, dr, adr image.Rectangle, d2s *f32.Aff3, src *image.Gray, sr image.Rectangle, bias image.Point, xscale, yscale float32, opts *Options) {
 	// When shrinking, broaden the effective kernel support so that we still
 	// visit every source pixel.
-	xHalfWidth, xKernelArgScale := q.Support, 1.0
+	xHalfWidth, xKernelArgScale := q.Support, float32(1.0)
 	if xscale > 1 {
 		xHalfWidth *= xscale
 		xKernelArgScale = 1 / xscale
 	}
-	yHalfWidth, yKernelArgScale := q.Support, 1.0
+	yHalfWidth, yKernelArgScale := q.Support, float32(1.0)
 	if yscale > 1 {
 		yHalfWidth *= yscale
 		yKernelArgScale = 1 / yscale
 	}
 
-	xWeights := make([]float64, 1+2*int(math.Ceil(xHalfWidth)))
-	yWeights := make([]float64, 1+2*int(math.Ceil(yHalfWidth)))
+	xWeights := make([]float32, 1+2*int(math.Ceil(float64(xHalfWidth))))
+	yWeights := make([]float32, 1+2*int(math.Ceil(float64(yHalfWidth))))
 
 	for dy := int32(adr.Min.Y); dy < int32(adr.Max.Y); dy++ {
-		dyf := float64(dr.Min.Y+int(dy)) + 0.5
+		dyf := float32(dr.Min.Y+int(dy)) + 0.5
 		d := (dr.Min.Y+int(dy)-dst.Rect.Min.Y)*dst.Stride + (dr.Min.X+adr.Min.X-dst.Rect.Min.X)*4
 		for dx := int32(adr.Min.X); dx < int32(adr.Max.X); dx, d = dx+1, d+4 {
-			dxf := float64(dr.Min.X+int(dx)) + 0.5
+			dxf := float32(dr.Min.X+int(dx)) + 0.5
 			sx := d2s[0]*dxf + d2s[1]*dyf + d2s[2]
 			sy := d2s[3]*dxf + d2s[4]*dyf + d2s[5]
 			if !(image.Point{int(sx) + bias.X, int(sy) + bias.Y}).In(sr) {
@@ -5136,21 +5135,21 @@ func (q *Kernel) transform_RGBA_Gray_Src(dst *image.RGBA, dr, adr image.Rectangl
 
 			// TODO: adjust the bias so that we can use int(f) instead
 			// of math.Floor(f) and math.Ceil(f).
-			sx += float64(bias.X)
+			sx += float32(bias.X)
 			sx -= 0.5
-			ix := int(math.Floor(sx - xHalfWidth))
+			ix := int(math.Floor(float64(sx - xHalfWidth)))
 			if ix < sr.Min.X {
 				ix = sr.Min.X
 			}
-			jx := int(math.Ceil(sx + xHalfWidth))
+			jx := int(math.Ceil(float64(sx + xHalfWidth)))
 			if jx > sr.Max.X {
 				jx = sr.Max.X
 			}
 
-			totalXWeight := 0.0
+			totalXWeight := float32(0.0)
 			for kx := ix; kx < jx; kx++ {
-				xWeight := 0.0
-				if t := abs((sx - float64(kx)) * xKernelArgScale); t < q.Support {
+				xWeight := float32(0.0)
+				if t := abs((sx - float32(kx)) * xKernelArgScale); t < q.Support {
 					xWeight = q.At(t)
 				}
 				xWeights[kx-ix] = xWeight
@@ -5160,21 +5159,21 @@ func (q *Kernel) transform_RGBA_Gray_Src(dst *image.RGBA, dr, adr image.Rectangl
 				xWeights[x] /= totalXWeight
 			}
 
-			sy += float64(bias.Y)
+			sy += float32(bias.Y)
 			sy -= 0.5
-			iy := int(math.Floor(sy - yHalfWidth))
+			iy := int(math.Floor(float64(sy - yHalfWidth)))
 			if iy < sr.Min.Y {
 				iy = sr.Min.Y
 			}
-			jy := int(math.Ceil(sy + yHalfWidth))
+			jy := int(math.Ceil(float64(sy + yHalfWidth)))
 			if jy > sr.Max.Y {
 				jy = sr.Max.Y
 			}
 
-			totalYWeight := 0.0
+			totalYWeight := float32(0.0)
 			for ky := iy; ky < jy; ky++ {
-				yWeight := 0.0
-				if t := abs((sy - float64(ky)) * yKernelArgScale); t < q.Support {
+				yWeight := float32(0.0)
+				if t := abs((sy - float32(ky)) * yKernelArgScale); t < q.Support {
 					yWeight = q.At(t)
 				}
 				yWeights[ky-iy] = yWeight
@@ -5184,14 +5183,14 @@ func (q *Kernel) transform_RGBA_Gray_Src(dst *image.RGBA, dr, adr image.Rectangl
 				yWeights[y] /= totalYWeight
 			}
 
-			var pr float64
+			var pr float32
 			for ky := iy; ky < jy; ky++ {
 				if yWeight := yWeights[ky-iy]; yWeight != 0 {
 					for kx := ix; kx < jx; kx++ {
 						if w := xWeights[kx-ix] * yWeight; w != 0 {
 							pi := (ky-src.Rect.Min.Y)*src.Stride + (kx - src.Rect.Min.X)
 							pru := uint32(src.Pix[pi]) * 0x101
-							pr += float64(pru) * w
+							pr += float32(pru) * w
 						}
 					}
 				}
@@ -5205,28 +5204,28 @@ func (q *Kernel) transform_RGBA_Gray_Src(dst *image.RGBA, dr, adr image.Rectangl
 	}
 }
 
-func (q *Kernel) transform_RGBA_NRGBA_Over(dst *image.RGBA, dr, adr image.Rectangle, d2s *f64.Aff3, src *image.NRGBA, sr image.Rectangle, bias image.Point, xscale, yscale float64, opts *Options) {
+func (q *Kernel) transform_RGBA_NRGBA_Over(dst *image.RGBA, dr, adr image.Rectangle, d2s *f32.Aff3, src *image.NRGBA, sr image.Rectangle, bias image.Point, xscale, yscale float32, opts *Options) {
 	// When shrinking, broaden the effective kernel support so that we still
 	// visit every source pixel.
-	xHalfWidth, xKernelArgScale := q.Support, 1.0
+	xHalfWidth, xKernelArgScale := q.Support, float32(1.0)
 	if xscale > 1 {
 		xHalfWidth *= xscale
 		xKernelArgScale = 1 / xscale
 	}
-	yHalfWidth, yKernelArgScale := q.Support, 1.0
+	yHalfWidth, yKernelArgScale := q.Support, float32(1.0)
 	if yscale > 1 {
 		yHalfWidth *= yscale
 		yKernelArgScale = 1 / yscale
 	}
 
-	xWeights := make([]float64, 1+2*int(math.Ceil(xHalfWidth)))
-	yWeights := make([]float64, 1+2*int(math.Ceil(yHalfWidth)))
+	xWeights := make([]float32, 1+2*int(math.Ceil(float64(xHalfWidth))))
+	yWeights := make([]float32, 1+2*int(math.Ceil(float64(yHalfWidth))))
 
 	for dy := int32(adr.Min.Y); dy < int32(adr.Max.Y); dy++ {
-		dyf := float64(dr.Min.Y+int(dy)) + 0.5
+		dyf := float32(dr.Min.Y+int(dy)) + 0.5
 		d := (dr.Min.Y+int(dy)-dst.Rect.Min.Y)*dst.Stride + (dr.Min.X+adr.Min.X-dst.Rect.Min.X)*4
 		for dx := int32(adr.Min.X); dx < int32(adr.Max.X); dx, d = dx+1, d+4 {
-			dxf := float64(dr.Min.X+int(dx)) + 0.5
+			dxf := float32(dr.Min.X+int(dx)) + 0.5
 			sx := d2s[0]*dxf + d2s[1]*dyf + d2s[2]
 			sy := d2s[3]*dxf + d2s[4]*dyf + d2s[5]
 			if !(image.Point{int(sx) + bias.X, int(sy) + bias.Y}).In(sr) {
@@ -5235,21 +5234,21 @@ func (q *Kernel) transform_RGBA_NRGBA_Over(dst *image.RGBA, dr, adr image.Rectan
 
 			// TODO: adjust the bias so that we can use int(f) instead
 			// of math.Floor(f) and math.Ceil(f).
-			sx += float64(bias.X)
+			sx += float32(bias.X)
 			sx -= 0.5
-			ix := int(math.Floor(sx - xHalfWidth))
+			ix := int(math.Floor(float64(sx - xHalfWidth)))
 			if ix < sr.Min.X {
 				ix = sr.Min.X
 			}
-			jx := int(math.Ceil(sx + xHalfWidth))
+			jx := int(math.Ceil(float64(sx + xHalfWidth)))
 			if jx > sr.Max.X {
 				jx = sr.Max.X
 			}
 
-			totalXWeight := 0.0
+			totalXWeight := float32(0.0)
 			for kx := ix; kx < jx; kx++ {
-				xWeight := 0.0
-				if t := abs((sx - float64(kx)) * xKernelArgScale); t < q.Support {
+				xWeight := float32(0.0)
+				if t := abs((sx - float32(kx)) * xKernelArgScale); t < q.Support {
 					xWeight = q.At(t)
 				}
 				xWeights[kx-ix] = xWeight
@@ -5259,21 +5258,21 @@ func (q *Kernel) transform_RGBA_NRGBA_Over(dst *image.RGBA, dr, adr image.Rectan
 				xWeights[x] /= totalXWeight
 			}
 
-			sy += float64(bias.Y)
+			sy += float32(bias.Y)
 			sy -= 0.5
-			iy := int(math.Floor(sy - yHalfWidth))
+			iy := int(math.Floor(float64(sy - yHalfWidth)))
 			if iy < sr.Min.Y {
 				iy = sr.Min.Y
 			}
-			jy := int(math.Ceil(sy + yHalfWidth))
+			jy := int(math.Ceil(float64(sy + yHalfWidth)))
 			if jy > sr.Max.Y {
 				jy = sr.Max.Y
 			}
 
-			totalYWeight := 0.0
+			totalYWeight := float32(0.0)
 			for ky := iy; ky < jy; ky++ {
-				yWeight := 0.0
-				if t := abs((sy - float64(ky)) * yKernelArgScale); t < q.Support {
+				yWeight := float32(0.0)
+				if t := abs((sy - float32(ky)) * yKernelArgScale); t < q.Support {
 					yWeight = q.At(t)
 				}
 				yWeights[ky-iy] = yWeight
@@ -5283,7 +5282,7 @@ func (q *Kernel) transform_RGBA_NRGBA_Over(dst *image.RGBA, dr, adr image.Rectan
 				yWeights[y] /= totalYWeight
 			}
 
-			var pr, pg, pb, pa float64
+			var pr, pg, pb, pa float32
 			for ky := iy; ky < jy; ky++ {
 				if yWeight := yWeights[ky-iy]; yWeight != 0 {
 					for kx := ix; kx < jx; kx++ {
@@ -5293,10 +5292,10 @@ func (q *Kernel) transform_RGBA_NRGBA_Over(dst *image.RGBA, dr, adr image.Rectan
 							pru := uint32(src.Pix[pi+0]) * pau / 0xff
 							pgu := uint32(src.Pix[pi+1]) * pau / 0xff
 							pbu := uint32(src.Pix[pi+2]) * pau / 0xff
-							pr += float64(pru) * w
-							pg += float64(pgu) * w
-							pb += float64(pbu) * w
-							pa += float64(pau) * w
+							pr += float32(pru) * w
+							pg += float32(pgu) * w
+							pb += float32(pbu) * w
+							pa += float32(pau) * w
 						}
 					}
 				}
@@ -5325,28 +5324,28 @@ func (q *Kernel) transform_RGBA_NRGBA_Over(dst *image.RGBA, dr, adr image.Rectan
 	}
 }
 
-func (q *Kernel) transform_RGBA_NRGBA_Src(dst *image.RGBA, dr, adr image.Rectangle, d2s *f64.Aff3, src *image.NRGBA, sr image.Rectangle, bias image.Point, xscale, yscale float64, opts *Options) {
+func (q *Kernel) transform_RGBA_NRGBA_Src(dst *image.RGBA, dr, adr image.Rectangle, d2s *f32.Aff3, src *image.NRGBA, sr image.Rectangle, bias image.Point, xscale, yscale float32, opts *Options) {
 	// When shrinking, broaden the effective kernel support so that we still
 	// visit every source pixel.
-	xHalfWidth, xKernelArgScale := q.Support, 1.0
+	xHalfWidth, xKernelArgScale := q.Support, float32(1.0)
 	if xscale > 1 {
 		xHalfWidth *= xscale
 		xKernelArgScale = 1 / xscale
 	}
-	yHalfWidth, yKernelArgScale := q.Support, 1.0
+	yHalfWidth, yKernelArgScale := q.Support, float32(1.0)
 	if yscale > 1 {
 		yHalfWidth *= yscale
 		yKernelArgScale = 1 / yscale
 	}
 
-	xWeights := make([]float64, 1+2*int(math.Ceil(xHalfWidth)))
-	yWeights := make([]float64, 1+2*int(math.Ceil(yHalfWidth)))
+	xWeights := make([]float32, 1+2*int(math.Ceil(float64(xHalfWidth))))
+	yWeights := make([]float32, 1+2*int(math.Ceil(float64(yHalfWidth))))
 
 	for dy := int32(adr.Min.Y); dy < int32(adr.Max.Y); dy++ {
-		dyf := float64(dr.Min.Y+int(dy)) + 0.5
+		dyf := float32(dr.Min.Y+int(dy)) + 0.5
 		d := (dr.Min.Y+int(dy)-dst.Rect.Min.Y)*dst.Stride + (dr.Min.X+adr.Min.X-dst.Rect.Min.X)*4
 		for dx := int32(adr.Min.X); dx < int32(adr.Max.X); dx, d = dx+1, d+4 {
-			dxf := float64(dr.Min.X+int(dx)) + 0.5
+			dxf := float32(dr.Min.X+int(dx)) + 0.5
 			sx := d2s[0]*dxf + d2s[1]*dyf + d2s[2]
 			sy := d2s[3]*dxf + d2s[4]*dyf + d2s[5]
 			if !(image.Point{int(sx) + bias.X, int(sy) + bias.Y}).In(sr) {
@@ -5355,21 +5354,21 @@ func (q *Kernel) transform_RGBA_NRGBA_Src(dst *image.RGBA, dr, adr image.Rectang
 
 			// TODO: adjust the bias so that we can use int(f) instead
 			// of math.Floor(f) and math.Ceil(f).
-			sx += float64(bias.X)
+			sx += float32(bias.X)
 			sx -= 0.5
-			ix := int(math.Floor(sx - xHalfWidth))
+			ix := int(math.Floor(float64(sx - xHalfWidth)))
 			if ix < sr.Min.X {
 				ix = sr.Min.X
 			}
-			jx := int(math.Ceil(sx + xHalfWidth))
+			jx := int(math.Ceil(float64(sx + xHalfWidth)))
 			if jx > sr.Max.X {
 				jx = sr.Max.X
 			}
 
-			totalXWeight := 0.0
+			totalXWeight := float32(0.0)
 			for kx := ix; kx < jx; kx++ {
-				xWeight := 0.0
-				if t := abs((sx - float64(kx)) * xKernelArgScale); t < q.Support {
+				xWeight := float32(0.0)
+				if t := abs((sx - float32(kx)) * xKernelArgScale); t < q.Support {
 					xWeight = q.At(t)
 				}
 				xWeights[kx-ix] = xWeight
@@ -5379,21 +5378,21 @@ func (q *Kernel) transform_RGBA_NRGBA_Src(dst *image.RGBA, dr, adr image.Rectang
 				xWeights[x] /= totalXWeight
 			}
 
-			sy += float64(bias.Y)
+			sy += float32(bias.Y)
 			sy -= 0.5
-			iy := int(math.Floor(sy - yHalfWidth))
+			iy := int(math.Floor(float64(sy - yHalfWidth)))
 			if iy < sr.Min.Y {
 				iy = sr.Min.Y
 			}
-			jy := int(math.Ceil(sy + yHalfWidth))
+			jy := int(math.Ceil(float64(sy + yHalfWidth)))
 			if jy > sr.Max.Y {
 				jy = sr.Max.Y
 			}
 
-			totalYWeight := 0.0
+			totalYWeight := float32(0.0)
 			for ky := iy; ky < jy; ky++ {
-				yWeight := 0.0
-				if t := abs((sy - float64(ky)) * yKernelArgScale); t < q.Support {
+				yWeight := float32(0.0)
+				if t := abs((sy - float32(ky)) * yKernelArgScale); t < q.Support {
 					yWeight = q.At(t)
 				}
 				yWeights[ky-iy] = yWeight
@@ -5403,7 +5402,7 @@ func (q *Kernel) transform_RGBA_NRGBA_Src(dst *image.RGBA, dr, adr image.Rectang
 				yWeights[y] /= totalYWeight
 			}
 
-			var pr, pg, pb, pa float64
+			var pr, pg, pb, pa float32
 			for ky := iy; ky < jy; ky++ {
 				if yWeight := yWeights[ky-iy]; yWeight != 0 {
 					for kx := ix; kx < jx; kx++ {
@@ -5413,10 +5412,10 @@ func (q *Kernel) transform_RGBA_NRGBA_Src(dst *image.RGBA, dr, adr image.Rectang
 							pru := uint32(src.Pix[pi+0]) * pau / 0xff
 							pgu := uint32(src.Pix[pi+1]) * pau / 0xff
 							pbu := uint32(src.Pix[pi+2]) * pau / 0xff
-							pr += float64(pru) * w
-							pg += float64(pgu) * w
-							pb += float64(pbu) * w
-							pa += float64(pau) * w
+							pr += float32(pru) * w
+							pg += float32(pgu) * w
+							pb += float32(pbu) * w
+							pa += float32(pau) * w
 						}
 					}
 				}
@@ -5440,28 +5439,28 @@ func (q *Kernel) transform_RGBA_NRGBA_Src(dst *image.RGBA, dr, adr image.Rectang
 	}
 }
 
-func (q *Kernel) transform_RGBA_RGBA_Over(dst *image.RGBA, dr, adr image.Rectangle, d2s *f64.Aff3, src *image.RGBA, sr image.Rectangle, bias image.Point, xscale, yscale float64, opts *Options) {
+func (q *Kernel) transform_RGBA_RGBA_Over(dst *image.RGBA, dr, adr image.Rectangle, d2s *f32.Aff3, src *image.RGBA, sr image.Rectangle, bias image.Point, xscale, yscale float32, opts *Options) {
 	// When shrinking, broaden the effective kernel support so that we still
 	// visit every source pixel.
-	xHalfWidth, xKernelArgScale := q.Support, 1.0
+	xHalfWidth, xKernelArgScale := q.Support, float32(1.0)
 	if xscale > 1 {
 		xHalfWidth *= xscale
 		xKernelArgScale = 1 / xscale
 	}
-	yHalfWidth, yKernelArgScale := q.Support, 1.0
+	yHalfWidth, yKernelArgScale := q.Support, float32(1.0)
 	if yscale > 1 {
 		yHalfWidth *= yscale
 		yKernelArgScale = 1 / yscale
 	}
 
-	xWeights := make([]float64, 1+2*int(math.Ceil(xHalfWidth)))
-	yWeights := make([]float64, 1+2*int(math.Ceil(yHalfWidth)))
+	xWeights := make([]float32, 1+2*int(math.Ceil(float64(xHalfWidth))))
+	yWeights := make([]float32, 1+2*int(math.Ceil(float64(yHalfWidth))))
 
 	for dy := int32(adr.Min.Y); dy < int32(adr.Max.Y); dy++ {
-		dyf := float64(dr.Min.Y+int(dy)) + 0.5
+		dyf := float32(dr.Min.Y+int(dy)) + 0.5
 		d := (dr.Min.Y+int(dy)-dst.Rect.Min.Y)*dst.Stride + (dr.Min.X+adr.Min.X-dst.Rect.Min.X)*4
 		for dx := int32(adr.Min.X); dx < int32(adr.Max.X); dx, d = dx+1, d+4 {
-			dxf := float64(dr.Min.X+int(dx)) + 0.5
+			dxf := float32(dr.Min.X+int(dx)) + 0.5
 			sx := d2s[0]*dxf + d2s[1]*dyf + d2s[2]
 			sy := d2s[3]*dxf + d2s[4]*dyf + d2s[5]
 			if !(image.Point{int(sx) + bias.X, int(sy) + bias.Y}).In(sr) {
@@ -5470,21 +5469,21 @@ func (q *Kernel) transform_RGBA_RGBA_Over(dst *image.RGBA, dr, adr image.Rectang
 
 			// TODO: adjust the bias so that we can use int(f) instead
 			// of math.Floor(f) and math.Ceil(f).
-			sx += float64(bias.X)
+			sx += float32(bias.X)
 			sx -= 0.5
-			ix := int(math.Floor(sx - xHalfWidth))
+			ix := int(math.Floor(float64(sx - xHalfWidth)))
 			if ix < sr.Min.X {
 				ix = sr.Min.X
 			}
-			jx := int(math.Ceil(sx + xHalfWidth))
+			jx := int(math.Ceil(float64(sx + xHalfWidth)))
 			if jx > sr.Max.X {
 				jx = sr.Max.X
 			}
 
-			totalXWeight := 0.0
+			totalXWeight := float32(0.0)
 			for kx := ix; kx < jx; kx++ {
-				xWeight := 0.0
-				if t := abs((sx - float64(kx)) * xKernelArgScale); t < q.Support {
+				xWeight := float32(0.0)
+				if t := abs((sx - float32(kx)) * xKernelArgScale); t < q.Support {
 					xWeight = q.At(t)
 				}
 				xWeights[kx-ix] = xWeight
@@ -5494,21 +5493,21 @@ func (q *Kernel) transform_RGBA_RGBA_Over(dst *image.RGBA, dr, adr image.Rectang
 				xWeights[x] /= totalXWeight
 			}
 
-			sy += float64(bias.Y)
+			sy += float32(bias.Y)
 			sy -= 0.5
-			iy := int(math.Floor(sy - yHalfWidth))
+			iy := int(math.Floor(float64(sy - yHalfWidth)))
 			if iy < sr.Min.Y {
 				iy = sr.Min.Y
 			}
-			jy := int(math.Ceil(sy + yHalfWidth))
+			jy := int(math.Ceil(float64(sy + yHalfWidth)))
 			if jy > sr.Max.Y {
 				jy = sr.Max.Y
 			}
 
-			totalYWeight := 0.0
+			totalYWeight := float32(0.0)
 			for ky := iy; ky < jy; ky++ {
-				yWeight := 0.0
-				if t := abs((sy - float64(ky)) * yKernelArgScale); t < q.Support {
+				yWeight := float32(0.0)
+				if t := abs((sy - float32(ky)) * yKernelArgScale); t < q.Support {
 					yWeight = q.At(t)
 				}
 				yWeights[ky-iy] = yWeight
@@ -5518,7 +5517,7 @@ func (q *Kernel) transform_RGBA_RGBA_Over(dst *image.RGBA, dr, adr image.Rectang
 				yWeights[y] /= totalYWeight
 			}
 
-			var pr, pg, pb, pa float64
+			var pr, pg, pb, pa float32
 			for ky := iy; ky < jy; ky++ {
 				if yWeight := yWeights[ky-iy]; yWeight != 0 {
 					for kx := ix; kx < jx; kx++ {
@@ -5528,10 +5527,10 @@ func (q *Kernel) transform_RGBA_RGBA_Over(dst *image.RGBA, dr, adr image.Rectang
 							pgu := uint32(src.Pix[pi+1]) * 0x101
 							pbu := uint32(src.Pix[pi+2]) * 0x101
 							pau := uint32(src.Pix[pi+3]) * 0x101
-							pr += float64(pru) * w
-							pg += float64(pgu) * w
-							pb += float64(pbu) * w
-							pa += float64(pau) * w
+							pr += float32(pru) * w
+							pg += float32(pgu) * w
+							pb += float32(pbu) * w
+							pa += float32(pau) * w
 						}
 					}
 				}
@@ -5560,28 +5559,28 @@ func (q *Kernel) transform_RGBA_RGBA_Over(dst *image.RGBA, dr, adr image.Rectang
 	}
 }
 
-func (q *Kernel) transform_RGBA_RGBA_Src(dst *image.RGBA, dr, adr image.Rectangle, d2s *f64.Aff3, src *image.RGBA, sr image.Rectangle, bias image.Point, xscale, yscale float64, opts *Options) {
+func (q *Kernel) transform_RGBA_RGBA_Src(dst *image.RGBA, dr, adr image.Rectangle, d2s *f32.Aff3, src *image.RGBA, sr image.Rectangle, bias image.Point, xscale, yscale float32, opts *Options) {
 	// When shrinking, broaden the effective kernel support so that we still
 	// visit every source pixel.
-	xHalfWidth, xKernelArgScale := q.Support, 1.0
+	xHalfWidth, xKernelArgScale := q.Support, float32(1.0)
 	if xscale > 1 {
 		xHalfWidth *= xscale
 		xKernelArgScale = 1 / xscale
 	}
-	yHalfWidth, yKernelArgScale := q.Support, 1.0
+	yHalfWidth, yKernelArgScale := q.Support, float32(1.0)
 	if yscale > 1 {
 		yHalfWidth *= yscale
 		yKernelArgScale = 1 / yscale
 	}
 
-	xWeights := make([]float64, 1+2*int(math.Ceil(xHalfWidth)))
-	yWeights := make([]float64, 1+2*int(math.Ceil(yHalfWidth)))
+	xWeights := make([]float32, 1+2*int(math.Ceil(float64(xHalfWidth))))
+	yWeights := make([]float32, 1+2*int(math.Ceil(float64(yHalfWidth))))
 
 	for dy := int32(adr.Min.Y); dy < int32(adr.Max.Y); dy++ {
-		dyf := float64(dr.Min.Y+int(dy)) + 0.5
+		dyf := float32(dr.Min.Y+int(dy)) + 0.5
 		d := (dr.Min.Y+int(dy)-dst.Rect.Min.Y)*dst.Stride + (dr.Min.X+adr.Min.X-dst.Rect.Min.X)*4
 		for dx := int32(adr.Min.X); dx < int32(adr.Max.X); dx, d = dx+1, d+4 {
-			dxf := float64(dr.Min.X+int(dx)) + 0.5
+			dxf := float32(dr.Min.X+int(dx)) + 0.5
 			sx := d2s[0]*dxf + d2s[1]*dyf + d2s[2]
 			sy := d2s[3]*dxf + d2s[4]*dyf + d2s[5]
 			if !(image.Point{int(sx) + bias.X, int(sy) + bias.Y}).In(sr) {
@@ -5590,21 +5589,21 @@ func (q *Kernel) transform_RGBA_RGBA_Src(dst *image.RGBA, dr, adr image.Rectangl
 
 			// TODO: adjust the bias so that we can use int(f) instead
 			// of math.Floor(f) and math.Ceil(f).
-			sx += float64(bias.X)
+			sx += float32(bias.X)
 			sx -= 0.5
-			ix := int(math.Floor(sx - xHalfWidth))
+			ix := int(math.Floor(float64(sx - xHalfWidth)))
 			if ix < sr.Min.X {
 				ix = sr.Min.X
 			}
-			jx := int(math.Ceil(sx + xHalfWidth))
+			jx := int(math.Ceil(float64(sx + xHalfWidth)))
 			if jx > sr.Max.X {
 				jx = sr.Max.X
 			}
 
-			totalXWeight := 0.0
+			totalXWeight := float32(0.0)
 			for kx := ix; kx < jx; kx++ {
-				xWeight := 0.0
-				if t := abs((sx - float64(kx)) * xKernelArgScale); t < q.Support {
+				xWeight := float32(0.0)
+				if t := abs((sx - float32(kx)) * xKernelArgScale); t < q.Support {
 					xWeight = q.At(t)
 				}
 				xWeights[kx-ix] = xWeight
@@ -5614,21 +5613,21 @@ func (q *Kernel) transform_RGBA_RGBA_Src(dst *image.RGBA, dr, adr image.Rectangl
 				xWeights[x] /= totalXWeight
 			}
 
-			sy += float64(bias.Y)
+			sy += float32(bias.Y)
 			sy -= 0.5
-			iy := int(math.Floor(sy - yHalfWidth))
+			iy := int(math.Floor(float64(sy - yHalfWidth)))
 			if iy < sr.Min.Y {
 				iy = sr.Min.Y
 			}
-			jy := int(math.Ceil(sy + yHalfWidth))
+			jy := int(math.Ceil(float64(sy + yHalfWidth)))
 			if jy > sr.Max.Y {
 				jy = sr.Max.Y
 			}
 
-			totalYWeight := 0.0
+			totalYWeight := float32(0.0)
 			for ky := iy; ky < jy; ky++ {
-				yWeight := 0.0
-				if t := abs((sy - float64(ky)) * yKernelArgScale); t < q.Support {
+				yWeight := float32(0.0)
+				if t := abs((sy - float32(ky)) * yKernelArgScale); t < q.Support {
 					yWeight = q.At(t)
 				}
 				yWeights[ky-iy] = yWeight
@@ -5638,7 +5637,7 @@ func (q *Kernel) transform_RGBA_RGBA_Src(dst *image.RGBA, dr, adr image.Rectangl
 				yWeights[y] /= totalYWeight
 			}
 
-			var pr, pg, pb, pa float64
+			var pr, pg, pb, pa float32
 			for ky := iy; ky < jy; ky++ {
 				if yWeight := yWeights[ky-iy]; yWeight != 0 {
 					for kx := ix; kx < jx; kx++ {
@@ -5648,10 +5647,10 @@ func (q *Kernel) transform_RGBA_RGBA_Src(dst *image.RGBA, dr, adr image.Rectangl
 							pgu := uint32(src.Pix[pi+1]) * 0x101
 							pbu := uint32(src.Pix[pi+2]) * 0x101
 							pau := uint32(src.Pix[pi+3]) * 0x101
-							pr += float64(pru) * w
-							pg += float64(pgu) * w
-							pb += float64(pbu) * w
-							pa += float64(pau) * w
+							pr += float32(pru) * w
+							pg += float32(pgu) * w
+							pb += float32(pbu) * w
+							pa += float32(pau) * w
 						}
 					}
 				}
@@ -5675,28 +5674,28 @@ func (q *Kernel) transform_RGBA_RGBA_Src(dst *image.RGBA, dr, adr image.Rectangl
 	}
 }
 
-func (q *Kernel) transform_RGBA_YCbCr444_Src(dst *image.RGBA, dr, adr image.Rectangle, d2s *f64.Aff3, src *image.YCbCr, sr image.Rectangle, bias image.Point, xscale, yscale float64, opts *Options) {
+func (q *Kernel) transform_RGBA_YCbCr444_Src(dst *image.RGBA, dr, adr image.Rectangle, d2s *f32.Aff3, src *image.YCbCr, sr image.Rectangle, bias image.Point, xscale, yscale float32, opts *Options) {
 	// When shrinking, broaden the effective kernel support so that we still
 	// visit every source pixel.
-	xHalfWidth, xKernelArgScale := q.Support, 1.0
+	xHalfWidth, xKernelArgScale := q.Support, float32(1.0)
 	if xscale > 1 {
 		xHalfWidth *= xscale
 		xKernelArgScale = 1 / xscale
 	}
-	yHalfWidth, yKernelArgScale := q.Support, 1.0
+	yHalfWidth, yKernelArgScale := q.Support, float32(1.0)
 	if yscale > 1 {
 		yHalfWidth *= yscale
 		yKernelArgScale = 1 / yscale
 	}
 
-	xWeights := make([]float64, 1+2*int(math.Ceil(xHalfWidth)))
-	yWeights := make([]float64, 1+2*int(math.Ceil(yHalfWidth)))
+	xWeights := make([]float32, 1+2*int(math.Ceil(float64(xHalfWidth))))
+	yWeights := make([]float32, 1+2*int(math.Ceil(float64(yHalfWidth))))
 
 	for dy := int32(adr.Min.Y); dy < int32(adr.Max.Y); dy++ {
-		dyf := float64(dr.Min.Y+int(dy)) + 0.5
+		dyf := float32(dr.Min.Y+int(dy)) + 0.5
 		d := (dr.Min.Y+int(dy)-dst.Rect.Min.Y)*dst.Stride + (dr.Min.X+adr.Min.X-dst.Rect.Min.X)*4
 		for dx := int32(adr.Min.X); dx < int32(adr.Max.X); dx, d = dx+1, d+4 {
-			dxf := float64(dr.Min.X+int(dx)) + 0.5
+			dxf := float32(dr.Min.X+int(dx)) + 0.5
 			sx := d2s[0]*dxf + d2s[1]*dyf + d2s[2]
 			sy := d2s[3]*dxf + d2s[4]*dyf + d2s[5]
 			if !(image.Point{int(sx) + bias.X, int(sy) + bias.Y}).In(sr) {
@@ -5705,21 +5704,21 @@ func (q *Kernel) transform_RGBA_YCbCr444_Src(dst *image.RGBA, dr, adr image.Rect
 
 			// TODO: adjust the bias so that we can use int(f) instead
 			// of math.Floor(f) and math.Ceil(f).
-			sx += float64(bias.X)
+			sx += float32(bias.X)
 			sx -= 0.5
-			ix := int(math.Floor(sx - xHalfWidth))
+			ix := int(math.Floor(float64(sx - xHalfWidth)))
 			if ix < sr.Min.X {
 				ix = sr.Min.X
 			}
-			jx := int(math.Ceil(sx + xHalfWidth))
+			jx := int(math.Ceil(float64(sx + xHalfWidth)))
 			if jx > sr.Max.X {
 				jx = sr.Max.X
 			}
 
-			totalXWeight := 0.0
+			totalXWeight := float32(0.0)
 			for kx := ix; kx < jx; kx++ {
-				xWeight := 0.0
-				if t := abs((sx - float64(kx)) * xKernelArgScale); t < q.Support {
+				xWeight := float32(0.0)
+				if t := abs((sx - float32(kx)) * xKernelArgScale); t < q.Support {
 					xWeight = q.At(t)
 				}
 				xWeights[kx-ix] = xWeight
@@ -5729,21 +5728,21 @@ func (q *Kernel) transform_RGBA_YCbCr444_Src(dst *image.RGBA, dr, adr image.Rect
 				xWeights[x] /= totalXWeight
 			}
 
-			sy += float64(bias.Y)
+			sy += float32(bias.Y)
 			sy -= 0.5
-			iy := int(math.Floor(sy - yHalfWidth))
+			iy := int(math.Floor(float64(sy - yHalfWidth)))
 			if iy < sr.Min.Y {
 				iy = sr.Min.Y
 			}
-			jy := int(math.Ceil(sy + yHalfWidth))
+			jy := int(math.Ceil(float64(sy + yHalfWidth)))
 			if jy > sr.Max.Y {
 				jy = sr.Max.Y
 			}
 
-			totalYWeight := 0.0
+			totalYWeight := float32(0.0)
 			for ky := iy; ky < jy; ky++ {
-				yWeight := 0.0
-				if t := abs((sy - float64(ky)) * yKernelArgScale); t < q.Support {
+				yWeight := float32(0.0)
+				if t := abs((sy - float32(ky)) * yKernelArgScale); t < q.Support {
 					yWeight = q.At(t)
 				}
 				yWeights[ky-iy] = yWeight
@@ -5753,7 +5752,7 @@ func (q *Kernel) transform_RGBA_YCbCr444_Src(dst *image.RGBA, dr, adr image.Rect
 				yWeights[y] /= totalYWeight
 			}
 
-			var pr, pg, pb float64
+			var pr, pg, pb float32
 			for ky := iy; ky < jy; ky++ {
 				if yWeight := yWeights[ky-iy]; yWeight != 0 {
 					for kx := ix; kx < jx; kx++ {
@@ -5784,9 +5783,9 @@ func (q *Kernel) transform_RGBA_YCbCr444_Src(dst *image.RGBA, dr, adr image.Rect
 								pbu = 0xffff
 							}
 
-							pr += float64(pru) * w
-							pg += float64(pgu) * w
-							pb += float64(pbu) * w
+							pr += float32(pru) * w
+							pg += float32(pgu) * w
+							pb += float32(pbu) * w
 						}
 					}
 				}
@@ -5799,28 +5798,28 @@ func (q *Kernel) transform_RGBA_YCbCr444_Src(dst *image.RGBA, dr, adr image.Rect
 	}
 }
 
-func (q *Kernel) transform_RGBA_YCbCr422_Src(dst *image.RGBA, dr, adr image.Rectangle, d2s *f64.Aff3, src *image.YCbCr, sr image.Rectangle, bias image.Point, xscale, yscale float64, opts *Options) {
+func (q *Kernel) transform_RGBA_YCbCr422_Src(dst *image.RGBA, dr, adr image.Rectangle, d2s *f32.Aff3, src *image.YCbCr, sr image.Rectangle, bias image.Point, xscale, yscale float32, opts *Options) {
 	// When shrinking, broaden the effective kernel support so that we still
 	// visit every source pixel.
-	xHalfWidth, xKernelArgScale := q.Support, 1.0
+	xHalfWidth, xKernelArgScale := q.Support, float32(1.0)
 	if xscale > 1 {
 		xHalfWidth *= xscale
 		xKernelArgScale = 1 / xscale
 	}
-	yHalfWidth, yKernelArgScale := q.Support, 1.0
+	yHalfWidth, yKernelArgScale := q.Support, float32(1.0)
 	if yscale > 1 {
 		yHalfWidth *= yscale
 		yKernelArgScale = 1 / yscale
 	}
 
-	xWeights := make([]float64, 1+2*int(math.Ceil(xHalfWidth)))
-	yWeights := make([]float64, 1+2*int(math.Ceil(yHalfWidth)))
+	xWeights := make([]float32, 1+2*int(math.Ceil(float64(xHalfWidth))))
+	yWeights := make([]float32, 1+2*int(math.Ceil(float64(yHalfWidth))))
 
 	for dy := int32(adr.Min.Y); dy < int32(adr.Max.Y); dy++ {
-		dyf := float64(dr.Min.Y+int(dy)) + 0.5
+		dyf := float32(dr.Min.Y+int(dy)) + 0.5
 		d := (dr.Min.Y+int(dy)-dst.Rect.Min.Y)*dst.Stride + (dr.Min.X+adr.Min.X-dst.Rect.Min.X)*4
 		for dx := int32(adr.Min.X); dx < int32(adr.Max.X); dx, d = dx+1, d+4 {
-			dxf := float64(dr.Min.X+int(dx)) + 0.5
+			dxf := float32(dr.Min.X+int(dx)) + 0.5
 			sx := d2s[0]*dxf + d2s[1]*dyf + d2s[2]
 			sy := d2s[3]*dxf + d2s[4]*dyf + d2s[5]
 			if !(image.Point{int(sx) + bias.X, int(sy) + bias.Y}).In(sr) {
@@ -5829,21 +5828,21 @@ func (q *Kernel) transform_RGBA_YCbCr422_Src(dst *image.RGBA, dr, adr image.Rect
 
 			// TODO: adjust the bias so that we can use int(f) instead
 			// of math.Floor(f) and math.Ceil(f).
-			sx += float64(bias.X)
+			sx += float32(bias.X)
 			sx -= 0.5
-			ix := int(math.Floor(sx - xHalfWidth))
+			ix := int(math.Floor(float64(sx - xHalfWidth)))
 			if ix < sr.Min.X {
 				ix = sr.Min.X
 			}
-			jx := int(math.Ceil(sx + xHalfWidth))
+			jx := int(math.Ceil(float64(sx + xHalfWidth)))
 			if jx > sr.Max.X {
 				jx = sr.Max.X
 			}
 
-			totalXWeight := 0.0
+			totalXWeight := float32(0.0)
 			for kx := ix; kx < jx; kx++ {
-				xWeight := 0.0
-				if t := abs((sx - float64(kx)) * xKernelArgScale); t < q.Support {
+				xWeight := float32(0.0)
+				if t := abs((sx - float32(kx)) * xKernelArgScale); t < q.Support {
 					xWeight = q.At(t)
 				}
 				xWeights[kx-ix] = xWeight
@@ -5853,21 +5852,21 @@ func (q *Kernel) transform_RGBA_YCbCr422_Src(dst *image.RGBA, dr, adr image.Rect
 				xWeights[x] /= totalXWeight
 			}
 
-			sy += float64(bias.Y)
+			sy += float32(bias.Y)
 			sy -= 0.5
-			iy := int(math.Floor(sy - yHalfWidth))
+			iy := int(math.Floor(float64(sy - yHalfWidth)))
 			if iy < sr.Min.Y {
 				iy = sr.Min.Y
 			}
-			jy := int(math.Ceil(sy + yHalfWidth))
+			jy := int(math.Ceil(float64(sy + yHalfWidth)))
 			if jy > sr.Max.Y {
 				jy = sr.Max.Y
 			}
 
-			totalYWeight := 0.0
+			totalYWeight := float32(0.0)
 			for ky := iy; ky < jy; ky++ {
-				yWeight := 0.0
-				if t := abs((sy - float64(ky)) * yKernelArgScale); t < q.Support {
+				yWeight := float32(0.0)
+				if t := abs((sy - float32(ky)) * yKernelArgScale); t < q.Support {
 					yWeight = q.At(t)
 				}
 				yWeights[ky-iy] = yWeight
@@ -5877,7 +5876,7 @@ func (q *Kernel) transform_RGBA_YCbCr422_Src(dst *image.RGBA, dr, adr image.Rect
 				yWeights[y] /= totalYWeight
 			}
 
-			var pr, pg, pb float64
+			var pr, pg, pb float32
 			for ky := iy; ky < jy; ky++ {
 				if yWeight := yWeights[ky-iy]; yWeight != 0 {
 					for kx := ix; kx < jx; kx++ {
@@ -5908,9 +5907,9 @@ func (q *Kernel) transform_RGBA_YCbCr422_Src(dst *image.RGBA, dr, adr image.Rect
 								pbu = 0xffff
 							}
 
-							pr += float64(pru) * w
-							pg += float64(pgu) * w
-							pb += float64(pbu) * w
+							pr += float32(pru) * w
+							pg += float32(pgu) * w
+							pb += float32(pbu) * w
 						}
 					}
 				}
@@ -5923,28 +5922,28 @@ func (q *Kernel) transform_RGBA_YCbCr422_Src(dst *image.RGBA, dr, adr image.Rect
 	}
 }
 
-func (q *Kernel) transform_RGBA_YCbCr420_Src(dst *image.RGBA, dr, adr image.Rectangle, d2s *f64.Aff3, src *image.YCbCr, sr image.Rectangle, bias image.Point, xscale, yscale float64, opts *Options) {
+func (q *Kernel) transform_RGBA_YCbCr420_Src(dst *image.RGBA, dr, adr image.Rectangle, d2s *f32.Aff3, src *image.YCbCr, sr image.Rectangle, bias image.Point, xscale, yscale float32, opts *Options) {
 	// When shrinking, broaden the effective kernel support so that we still
 	// visit every source pixel.
-	xHalfWidth, xKernelArgScale := q.Support, 1.0
+	xHalfWidth, xKernelArgScale := q.Support, float32(1.0)
 	if xscale > 1 {
 		xHalfWidth *= xscale
 		xKernelArgScale = 1 / xscale
 	}
-	yHalfWidth, yKernelArgScale := q.Support, 1.0
+	yHalfWidth, yKernelArgScale := q.Support, float32(1.0)
 	if yscale > 1 {
 		yHalfWidth *= yscale
 		yKernelArgScale = 1 / yscale
 	}
 
-	xWeights := make([]float64, 1+2*int(math.Ceil(xHalfWidth)))
-	yWeights := make([]float64, 1+2*int(math.Ceil(yHalfWidth)))
+	xWeights := make([]float32, 1+2*int(math.Ceil(float64(xHalfWidth))))
+	yWeights := make([]float32, 1+2*int(math.Ceil(float64(yHalfWidth))))
 
 	for dy := int32(adr.Min.Y); dy < int32(adr.Max.Y); dy++ {
-		dyf := float64(dr.Min.Y+int(dy)) + 0.5
+		dyf := float32(dr.Min.Y+int(dy)) + 0.5
 		d := (dr.Min.Y+int(dy)-dst.Rect.Min.Y)*dst.Stride + (dr.Min.X+adr.Min.X-dst.Rect.Min.X)*4
 		for dx := int32(adr.Min.X); dx < int32(adr.Max.X); dx, d = dx+1, d+4 {
-			dxf := float64(dr.Min.X+int(dx)) + 0.5
+			dxf := float32(dr.Min.X+int(dx)) + 0.5
 			sx := d2s[0]*dxf + d2s[1]*dyf + d2s[2]
 			sy := d2s[3]*dxf + d2s[4]*dyf + d2s[5]
 			if !(image.Point{int(sx) + bias.X, int(sy) + bias.Y}).In(sr) {
@@ -5953,21 +5952,21 @@ func (q *Kernel) transform_RGBA_YCbCr420_Src(dst *image.RGBA, dr, adr image.Rect
 
 			// TODO: adjust the bias so that we can use int(f) instead
 			// of math.Floor(f) and math.Ceil(f).
-			sx += float64(bias.X)
+			sx += float32(bias.X)
 			sx -= 0.5
-			ix := int(math.Floor(sx - xHalfWidth))
+			ix := int(math.Floor(float64(sx - xHalfWidth)))
 			if ix < sr.Min.X {
 				ix = sr.Min.X
 			}
-			jx := int(math.Ceil(sx + xHalfWidth))
+			jx := int(math.Ceil(float64(sx + xHalfWidth)))
 			if jx > sr.Max.X {
 				jx = sr.Max.X
 			}
 
-			totalXWeight := 0.0
+			totalXWeight := float32(0.0)
 			for kx := ix; kx < jx; kx++ {
-				xWeight := 0.0
-				if t := abs((sx - float64(kx)) * xKernelArgScale); t < q.Support {
+				xWeight := float32(0.0)
+				if t := abs((sx - float32(kx)) * xKernelArgScale); t < q.Support {
 					xWeight = q.At(t)
 				}
 				xWeights[kx-ix] = xWeight
@@ -5977,21 +5976,21 @@ func (q *Kernel) transform_RGBA_YCbCr420_Src(dst *image.RGBA, dr, adr image.Rect
 				xWeights[x] /= totalXWeight
 			}
 
-			sy += float64(bias.Y)
+			sy += float32(bias.Y)
 			sy -= 0.5
-			iy := int(math.Floor(sy - yHalfWidth))
+			iy := int(math.Floor(float64(sy - yHalfWidth)))
 			if iy < sr.Min.Y {
 				iy = sr.Min.Y
 			}
-			jy := int(math.Ceil(sy + yHalfWidth))
+			jy := int(math.Ceil(float64(sy + yHalfWidth)))
 			if jy > sr.Max.Y {
 				jy = sr.Max.Y
 			}
 
-			totalYWeight := 0.0
+			totalYWeight := float32(0.0)
 			for ky := iy; ky < jy; ky++ {
-				yWeight := 0.0
-				if t := abs((sy - float64(ky)) * yKernelArgScale); t < q.Support {
+				yWeight := float32(0.0)
+				if t := abs((sy - float32(ky)) * yKernelArgScale); t < q.Support {
 					yWeight = q.At(t)
 				}
 				yWeights[ky-iy] = yWeight
@@ -6001,7 +6000,7 @@ func (q *Kernel) transform_RGBA_YCbCr420_Src(dst *image.RGBA, dr, adr image.Rect
 				yWeights[y] /= totalYWeight
 			}
 
-			var pr, pg, pb float64
+			var pr, pg, pb float32
 			for ky := iy; ky < jy; ky++ {
 				if yWeight := yWeights[ky-iy]; yWeight != 0 {
 					for kx := ix; kx < jx; kx++ {
@@ -6032,9 +6031,9 @@ func (q *Kernel) transform_RGBA_YCbCr420_Src(dst *image.RGBA, dr, adr image.Rect
 								pbu = 0xffff
 							}
 
-							pr += float64(pru) * w
-							pg += float64(pgu) * w
-							pb += float64(pbu) * w
+							pr += float32(pru) * w
+							pg += float32(pgu) * w
+							pb += float32(pbu) * w
 						}
 					}
 				}
@@ -6047,28 +6046,28 @@ func (q *Kernel) transform_RGBA_YCbCr420_Src(dst *image.RGBA, dr, adr image.Rect
 	}
 }
 
-func (q *Kernel) transform_RGBA_YCbCr440_Src(dst *image.RGBA, dr, adr image.Rectangle, d2s *f64.Aff3, src *image.YCbCr, sr image.Rectangle, bias image.Point, xscale, yscale float64, opts *Options) {
+func (q *Kernel) transform_RGBA_YCbCr440_Src(dst *image.RGBA, dr, adr image.Rectangle, d2s *f32.Aff3, src *image.YCbCr, sr image.Rectangle, bias image.Point, xscale, yscale float32, opts *Options) {
 	// When shrinking, broaden the effective kernel support so that we still
 	// visit every source pixel.
-	xHalfWidth, xKernelArgScale := q.Support, 1.0
+	xHalfWidth, xKernelArgScale := q.Support, float32(1.0)
 	if xscale > 1 {
 		xHalfWidth *= xscale
 		xKernelArgScale = 1 / xscale
 	}
-	yHalfWidth, yKernelArgScale := q.Support, 1.0
+	yHalfWidth, yKernelArgScale := q.Support, float32(1.0)
 	if yscale > 1 {
 		yHalfWidth *= yscale
 		yKernelArgScale = 1 / yscale
 	}
 
-	xWeights := make([]float64, 1+2*int(math.Ceil(xHalfWidth)))
-	yWeights := make([]float64, 1+2*int(math.Ceil(yHalfWidth)))
+	xWeights := make([]float32, 1+2*int(math.Ceil(float64(xHalfWidth))))
+	yWeights := make([]float32, 1+2*int(math.Ceil(float64(yHalfWidth))))
 
 	for dy := int32(adr.Min.Y); dy < int32(adr.Max.Y); dy++ {
-		dyf := float64(dr.Min.Y+int(dy)) + 0.5
+		dyf := float32(dr.Min.Y+int(dy)) + 0.5
 		d := (dr.Min.Y+int(dy)-dst.Rect.Min.Y)*dst.Stride + (dr.Min.X+adr.Min.X-dst.Rect.Min.X)*4
 		for dx := int32(adr.Min.X); dx < int32(adr.Max.X); dx, d = dx+1, d+4 {
-			dxf := float64(dr.Min.X+int(dx)) + 0.5
+			dxf := float32(dr.Min.X+int(dx)) + 0.5
 			sx := d2s[0]*dxf + d2s[1]*dyf + d2s[2]
 			sy := d2s[3]*dxf + d2s[4]*dyf + d2s[5]
 			if !(image.Point{int(sx) + bias.X, int(sy) + bias.Y}).In(sr) {
@@ -6077,21 +6076,21 @@ func (q *Kernel) transform_RGBA_YCbCr440_Src(dst *image.RGBA, dr, adr image.Rect
 
 			// TODO: adjust the bias so that we can use int(f) instead
 			// of math.Floor(f) and math.Ceil(f).
-			sx += float64(bias.X)
+			sx += float32(bias.X)
 			sx -= 0.5
-			ix := int(math.Floor(sx - xHalfWidth))
+			ix := int(math.Floor(float64(sx - xHalfWidth)))
 			if ix < sr.Min.X {
 				ix = sr.Min.X
 			}
-			jx := int(math.Ceil(sx + xHalfWidth))
+			jx := int(math.Ceil(float64(sx + xHalfWidth)))
 			if jx > sr.Max.X {
 				jx = sr.Max.X
 			}
 
-			totalXWeight := 0.0
+			totalXWeight := float32(0.0)
 			for kx := ix; kx < jx; kx++ {
-				xWeight := 0.0
-				if t := abs((sx - float64(kx)) * xKernelArgScale); t < q.Support {
+				xWeight := float32(0.0)
+				if t := abs((sx - float32(kx)) * xKernelArgScale); t < q.Support {
 					xWeight = q.At(t)
 				}
 				xWeights[kx-ix] = xWeight
@@ -6101,21 +6100,21 @@ func (q *Kernel) transform_RGBA_YCbCr440_Src(dst *image.RGBA, dr, adr image.Rect
 				xWeights[x] /= totalXWeight
 			}
 
-			sy += float64(bias.Y)
+			sy += float32(bias.Y)
 			sy -= 0.5
-			iy := int(math.Floor(sy - yHalfWidth))
+			iy := int(math.Floor(float64(sy - yHalfWidth)))
 			if iy < sr.Min.Y {
 				iy = sr.Min.Y
 			}
-			jy := int(math.Ceil(sy + yHalfWidth))
+			jy := int(math.Ceil(float64(sy + yHalfWidth)))
 			if jy > sr.Max.Y {
 				jy = sr.Max.Y
 			}
 
-			totalYWeight := 0.0
+			totalYWeight := float32(0.0)
 			for ky := iy; ky < jy; ky++ {
-				yWeight := 0.0
-				if t := abs((sy - float64(ky)) * yKernelArgScale); t < q.Support {
+				yWeight := float32(0.0)
+				if t := abs((sy - float32(ky)) * yKernelArgScale); t < q.Support {
 					yWeight = q.At(t)
 				}
 				yWeights[ky-iy] = yWeight
@@ -6125,7 +6124,7 @@ func (q *Kernel) transform_RGBA_YCbCr440_Src(dst *image.RGBA, dr, adr image.Rect
 				yWeights[y] /= totalYWeight
 			}
 
-			var pr, pg, pb float64
+			var pr, pg, pb float32
 			for ky := iy; ky < jy; ky++ {
 				if yWeight := yWeights[ky-iy]; yWeight != 0 {
 					for kx := ix; kx < jx; kx++ {
@@ -6156,9 +6155,9 @@ func (q *Kernel) transform_RGBA_YCbCr440_Src(dst *image.RGBA, dr, adr image.Rect
 								pbu = 0xffff
 							}
 
-							pr += float64(pru) * w
-							pg += float64(pgu) * w
-							pb += float64(pbu) * w
+							pr += float32(pru) * w
+							pg += float32(pgu) * w
+							pb += float32(pbu) * w
 						}
 					}
 				}
@@ -6171,28 +6170,28 @@ func (q *Kernel) transform_RGBA_YCbCr440_Src(dst *image.RGBA, dr, adr image.Rect
 	}
 }
 
-func (q *Kernel) transform_RGBA_Image_Over(dst *image.RGBA, dr, adr image.Rectangle, d2s *f64.Aff3, src image.Image, sr image.Rectangle, bias image.Point, xscale, yscale float64, opts *Options) {
+func (q *Kernel) transform_RGBA_Image_Over(dst *image.RGBA, dr, adr image.Rectangle, d2s *f32.Aff3, src image.Image, sr image.Rectangle, bias image.Point, xscale, yscale float32, opts *Options) {
 	// When shrinking, broaden the effective kernel support so that we still
 	// visit every source pixel.
-	xHalfWidth, xKernelArgScale := q.Support, 1.0
+	xHalfWidth, xKernelArgScale := q.Support, float32(1.0)
 	if xscale > 1 {
 		xHalfWidth *= xscale
 		xKernelArgScale = 1 / xscale
 	}
-	yHalfWidth, yKernelArgScale := q.Support, 1.0
+	yHalfWidth, yKernelArgScale := q.Support, float32(1.0)
 	if yscale > 1 {
 		yHalfWidth *= yscale
 		yKernelArgScale = 1 / yscale
 	}
 
-	xWeights := make([]float64, 1+2*int(math.Ceil(xHalfWidth)))
-	yWeights := make([]float64, 1+2*int(math.Ceil(yHalfWidth)))
+	xWeights := make([]float32, 1+2*int(math.Ceil(float64(xHalfWidth))))
+	yWeights := make([]float32, 1+2*int(math.Ceil(float64(yHalfWidth))))
 
 	for dy := int32(adr.Min.Y); dy < int32(adr.Max.Y); dy++ {
-		dyf := float64(dr.Min.Y+int(dy)) + 0.5
+		dyf := float32(dr.Min.Y+int(dy)) + 0.5
 		d := (dr.Min.Y+int(dy)-dst.Rect.Min.Y)*dst.Stride + (dr.Min.X+adr.Min.X-dst.Rect.Min.X)*4
 		for dx := int32(adr.Min.X); dx < int32(adr.Max.X); dx, d = dx+1, d+4 {
-			dxf := float64(dr.Min.X+int(dx)) + 0.5
+			dxf := float32(dr.Min.X+int(dx)) + 0.5
 			sx := d2s[0]*dxf + d2s[1]*dyf + d2s[2]
 			sy := d2s[3]*dxf + d2s[4]*dyf + d2s[5]
 			if !(image.Point{int(sx) + bias.X, int(sy) + bias.Y}).In(sr) {
@@ -6201,21 +6200,21 @@ func (q *Kernel) transform_RGBA_Image_Over(dst *image.RGBA, dr, adr image.Rectan
 
 			// TODO: adjust the bias so that we can use int(f) instead
 			// of math.Floor(f) and math.Ceil(f).
-			sx += float64(bias.X)
+			sx += float32(bias.X)
 			sx -= 0.5
-			ix := int(math.Floor(sx - xHalfWidth))
+			ix := int(math.Floor(float64(sx - xHalfWidth)))
 			if ix < sr.Min.X {
 				ix = sr.Min.X
 			}
-			jx := int(math.Ceil(sx + xHalfWidth))
+			jx := int(math.Ceil(float64(sx + xHalfWidth)))
 			if jx > sr.Max.X {
 				jx = sr.Max.X
 			}
 
-			totalXWeight := 0.0
+			totalXWeight := float32(0.0)
 			for kx := ix; kx < jx; kx++ {
-				xWeight := 0.0
-				if t := abs((sx - float64(kx)) * xKernelArgScale); t < q.Support {
+				xWeight := float32(0.0)
+				if t := abs((sx - float32(kx)) * xKernelArgScale); t < q.Support {
 					xWeight = q.At(t)
 				}
 				xWeights[kx-ix] = xWeight
@@ -6225,21 +6224,21 @@ func (q *Kernel) transform_RGBA_Image_Over(dst *image.RGBA, dr, adr image.Rectan
 				xWeights[x] /= totalXWeight
 			}
 
-			sy += float64(bias.Y)
+			sy += float32(bias.Y)
 			sy -= 0.5
-			iy := int(math.Floor(sy - yHalfWidth))
+			iy := int(math.Floor(float64(sy - yHalfWidth)))
 			if iy < sr.Min.Y {
 				iy = sr.Min.Y
 			}
-			jy := int(math.Ceil(sy + yHalfWidth))
+			jy := int(math.Ceil(float64(sy + yHalfWidth)))
 			if jy > sr.Max.Y {
 				jy = sr.Max.Y
 			}
 
-			totalYWeight := 0.0
+			totalYWeight := float32(0.0)
 			for ky := iy; ky < jy; ky++ {
-				yWeight := 0.0
-				if t := abs((sy - float64(ky)) * yKernelArgScale); t < q.Support {
+				yWeight := float32(0.0)
+				if t := abs((sy - float32(ky)) * yKernelArgScale); t < q.Support {
 					yWeight = q.At(t)
 				}
 				yWeights[ky-iy] = yWeight
@@ -6249,16 +6248,16 @@ func (q *Kernel) transform_RGBA_Image_Over(dst *image.RGBA, dr, adr image.Rectan
 				yWeights[y] /= totalYWeight
 			}
 
-			var pr, pg, pb, pa float64
+			var pr, pg, pb, pa float32
 			for ky := iy; ky < jy; ky++ {
 				if yWeight := yWeights[ky-iy]; yWeight != 0 {
 					for kx := ix; kx < jx; kx++ {
 						if w := xWeights[kx-ix] * yWeight; w != 0 {
 							pru, pgu, pbu, pau := src.At(kx, ky).RGBA()
-							pr += float64(pru) * w
-							pg += float64(pgu) * w
-							pb += float64(pbu) * w
-							pa += float64(pau) * w
+							pr += float32(pru) * w
+							pg += float32(pgu) * w
+							pb += float32(pbu) * w
+							pa += float32(pau) * w
 						}
 					}
 				}
@@ -6287,28 +6286,28 @@ func (q *Kernel) transform_RGBA_Image_Over(dst *image.RGBA, dr, adr image.Rectan
 	}
 }
 
-func (q *Kernel) transform_RGBA_Image_Src(dst *image.RGBA, dr, adr image.Rectangle, d2s *f64.Aff3, src image.Image, sr image.Rectangle, bias image.Point, xscale, yscale float64, opts *Options) {
+func (q *Kernel) transform_RGBA_Image_Src(dst *image.RGBA, dr, adr image.Rectangle, d2s *f32.Aff3, src image.Image, sr image.Rectangle, bias image.Point, xscale, yscale float32, opts *Options) {
 	// When shrinking, broaden the effective kernel support so that we still
 	// visit every source pixel.
-	xHalfWidth, xKernelArgScale := q.Support, 1.0
+	xHalfWidth, xKernelArgScale := q.Support, float32(1.0)
 	if xscale > 1 {
 		xHalfWidth *= xscale
 		xKernelArgScale = 1 / xscale
 	}
-	yHalfWidth, yKernelArgScale := q.Support, 1.0
+	yHalfWidth, yKernelArgScale := q.Support, float32(1.0)
 	if yscale > 1 {
 		yHalfWidth *= yscale
 		yKernelArgScale = 1 / yscale
 	}
 
-	xWeights := make([]float64, 1+2*int(math.Ceil(xHalfWidth)))
-	yWeights := make([]float64, 1+2*int(math.Ceil(yHalfWidth)))
+	xWeights := make([]float32, 1+2*int(math.Ceil(float64(xHalfWidth))))
+	yWeights := make([]float32, 1+2*int(math.Ceil(float64(yHalfWidth))))
 
 	for dy := int32(adr.Min.Y); dy < int32(adr.Max.Y); dy++ {
-		dyf := float64(dr.Min.Y+int(dy)) + 0.5
+		dyf := float32(dr.Min.Y+int(dy)) + 0.5
 		d := (dr.Min.Y+int(dy)-dst.Rect.Min.Y)*dst.Stride + (dr.Min.X+adr.Min.X-dst.Rect.Min.X)*4
 		for dx := int32(adr.Min.X); dx < int32(adr.Max.X); dx, d = dx+1, d+4 {
-			dxf := float64(dr.Min.X+int(dx)) + 0.5
+			dxf := float32(dr.Min.X+int(dx)) + 0.5
 			sx := d2s[0]*dxf + d2s[1]*dyf + d2s[2]
 			sy := d2s[3]*dxf + d2s[4]*dyf + d2s[5]
 			if !(image.Point{int(sx) + bias.X, int(sy) + bias.Y}).In(sr) {
@@ -6317,21 +6316,21 @@ func (q *Kernel) transform_RGBA_Image_Src(dst *image.RGBA, dr, adr image.Rectang
 
 			// TODO: adjust the bias so that we can use int(f) instead
 			// of math.Floor(f) and math.Ceil(f).
-			sx += float64(bias.X)
+			sx += float32(bias.X)
 			sx -= 0.5
-			ix := int(math.Floor(sx - xHalfWidth))
+			ix := int(math.Floor(float64(sx - xHalfWidth)))
 			if ix < sr.Min.X {
 				ix = sr.Min.X
 			}
-			jx := int(math.Ceil(sx + xHalfWidth))
+			jx := int(math.Ceil(float64(sx + xHalfWidth)))
 			if jx > sr.Max.X {
 				jx = sr.Max.X
 			}
 
-			totalXWeight := 0.0
+			totalXWeight := float32(0.0)
 			for kx := ix; kx < jx; kx++ {
-				xWeight := 0.0
-				if t := abs((sx - float64(kx)) * xKernelArgScale); t < q.Support {
+				xWeight := float32(0.0)
+				if t := abs((sx - float32(kx)) * xKernelArgScale); t < q.Support {
 					xWeight = q.At(t)
 				}
 				xWeights[kx-ix] = xWeight
@@ -6341,21 +6340,21 @@ func (q *Kernel) transform_RGBA_Image_Src(dst *image.RGBA, dr, adr image.Rectang
 				xWeights[x] /= totalXWeight
 			}
 
-			sy += float64(bias.Y)
+			sy += float32(bias.Y)
 			sy -= 0.5
-			iy := int(math.Floor(sy - yHalfWidth))
+			iy := int(math.Floor(float64(sy - yHalfWidth)))
 			if iy < sr.Min.Y {
 				iy = sr.Min.Y
 			}
-			jy := int(math.Ceil(sy + yHalfWidth))
+			jy := int(math.Ceil(float64(sy + yHalfWidth)))
 			if jy > sr.Max.Y {
 				jy = sr.Max.Y
 			}
 
-			totalYWeight := 0.0
+			totalYWeight := float32(0.0)
 			for ky := iy; ky < jy; ky++ {
-				yWeight := 0.0
-				if t := abs((sy - float64(ky)) * yKernelArgScale); t < q.Support {
+				yWeight := float32(0.0)
+				if t := abs((sy - float32(ky)) * yKernelArgScale); t < q.Support {
 					yWeight = q.At(t)
 				}
 				yWeights[ky-iy] = yWeight
@@ -6365,16 +6364,16 @@ func (q *Kernel) transform_RGBA_Image_Src(dst *image.RGBA, dr, adr image.Rectang
 				yWeights[y] /= totalYWeight
 			}
 
-			var pr, pg, pb, pa float64
+			var pr, pg, pb, pa float32
 			for ky := iy; ky < jy; ky++ {
 				if yWeight := yWeights[ky-iy]; yWeight != 0 {
 					for kx := ix; kx < jx; kx++ {
 						if w := xWeights[kx-ix] * yWeight; w != 0 {
 							pru, pgu, pbu, pau := src.At(kx, ky).RGBA()
-							pr += float64(pru) * w
-							pg += float64(pgu) * w
-							pb += float64(pbu) * w
-							pa += float64(pau) * w
+							pr += float32(pru) * w
+							pg += float32(pgu) * w
+							pb += float32(pbu) * w
+							pa += float32(pau) * w
 						}
 					}
 				}
@@ -6398,31 +6397,31 @@ func (q *Kernel) transform_RGBA_Image_Src(dst *image.RGBA, dr, adr image.Rectang
 	}
 }
 
-func (q *Kernel) transform_Image_Image_Over(dst Image, dr, adr image.Rectangle, d2s *f64.Aff3, src image.Image, sr image.Rectangle, bias image.Point, xscale, yscale float64, opts *Options) {
+func (q *Kernel) transform_Image_Image_Over(dst Image, dr, adr image.Rectangle, d2s *f32.Aff3, src image.Image, sr image.Rectangle, bias image.Point, xscale, yscale float32, opts *Options) {
 	// When shrinking, broaden the effective kernel support so that we still
 	// visit every source pixel.
-	xHalfWidth, xKernelArgScale := q.Support, 1.0
+	xHalfWidth, xKernelArgScale := q.Support, float32(1.0)
 	if xscale > 1 {
 		xHalfWidth *= xscale
 		xKernelArgScale = 1 / xscale
 	}
-	yHalfWidth, yKernelArgScale := q.Support, 1.0
+	yHalfWidth, yKernelArgScale := q.Support, float32(1.0)
 	if yscale > 1 {
 		yHalfWidth *= yscale
 		yKernelArgScale = 1 / yscale
 	}
 
-	xWeights := make([]float64, 1+2*int(math.Ceil(xHalfWidth)))
-	yWeights := make([]float64, 1+2*int(math.Ceil(yHalfWidth)))
+	xWeights := make([]float32, 1+2*int(math.Ceil(float64(xHalfWidth))))
+	yWeights := make([]float32, 1+2*int(math.Ceil(float64(yHalfWidth))))
 
 	srcMask, smp := opts.SrcMask, opts.SrcMaskP
 	dstMask, dmp := opts.DstMask, opts.DstMaskP
 	dstColorRGBA64 := &color.RGBA64{}
 	dstColor := color.Color(dstColorRGBA64)
 	for dy := int32(adr.Min.Y); dy < int32(adr.Max.Y); dy++ {
-		dyf := float64(dr.Min.Y+int(dy)) + 0.5
+		dyf := float32(dr.Min.Y+int(dy)) + 0.5
 		for dx := int32(adr.Min.X); dx < int32(adr.Max.X); dx++ {
-			dxf := float64(dr.Min.X+int(dx)) + 0.5
+			dxf := float32(dr.Min.X+int(dx)) + 0.5
 			sx := d2s[0]*dxf + d2s[1]*dyf + d2s[2]
 			sy := d2s[3]*dxf + d2s[4]*dyf + d2s[5]
 			if !(image.Point{int(sx) + bias.X, int(sy) + bias.Y}).In(sr) {
@@ -6431,21 +6430,21 @@ func (q *Kernel) transform_Image_Image_Over(dst Image, dr, adr image.Rectangle, 
 
 			// TODO: adjust the bias so that we can use int(f) instead
 			// of math.Floor(f) and math.Ceil(f).
-			sx += float64(bias.X)
+			sx += float32(bias.X)
 			sx -= 0.5
-			ix := int(math.Floor(sx - xHalfWidth))
+			ix := int(math.Floor(float64(sx - xHalfWidth)))
 			if ix < sr.Min.X {
 				ix = sr.Min.X
 			}
-			jx := int(math.Ceil(sx + xHalfWidth))
+			jx := int(math.Ceil(float64(sx + xHalfWidth)))
 			if jx > sr.Max.X {
 				jx = sr.Max.X
 			}
 
-			totalXWeight := 0.0
+			totalXWeight := float32(0.0)
 			for kx := ix; kx < jx; kx++ {
-				xWeight := 0.0
-				if t := abs((sx - float64(kx)) * xKernelArgScale); t < q.Support {
+				xWeight := float32(0.0)
+				if t := abs((sx - float32(kx)) * xKernelArgScale); t < q.Support {
 					xWeight = q.At(t)
 				}
 				xWeights[kx-ix] = xWeight
@@ -6455,21 +6454,21 @@ func (q *Kernel) transform_Image_Image_Over(dst Image, dr, adr image.Rectangle, 
 				xWeights[x] /= totalXWeight
 			}
 
-			sy += float64(bias.Y)
+			sy += float32(bias.Y)
 			sy -= 0.5
-			iy := int(math.Floor(sy - yHalfWidth))
+			iy := int(math.Floor(float64(sy - yHalfWidth)))
 			if iy < sr.Min.Y {
 				iy = sr.Min.Y
 			}
-			jy := int(math.Ceil(sy + yHalfWidth))
+			jy := int(math.Ceil(float64(sy + yHalfWidth)))
 			if jy > sr.Max.Y {
 				jy = sr.Max.Y
 			}
 
-			totalYWeight := 0.0
+			totalYWeight := float32(0.0)
 			for ky := iy; ky < jy; ky++ {
-				yWeight := 0.0
-				if t := abs((sy - float64(ky)) * yKernelArgScale); t < q.Support {
+				yWeight := float32(0.0)
+				if t := abs((sy - float32(ky)) * yKernelArgScale); t < q.Support {
 					yWeight = q.At(t)
 				}
 				yWeights[ky-iy] = yWeight
@@ -6479,7 +6478,7 @@ func (q *Kernel) transform_Image_Image_Over(dst Image, dr, adr image.Rectangle, 
 				yWeights[y] /= totalYWeight
 			}
 
-			var pr, pg, pb, pa float64
+			var pr, pg, pb, pa float32
 			for ky := iy; ky < jy; ky++ {
 				if yWeight := yWeights[ky-iy]; yWeight != 0 {
 					for kx := ix; kx < jx; kx++ {
@@ -6492,10 +6491,10 @@ func (q *Kernel) transform_Image_Image_Over(dst Image, dr, adr image.Rectangle, 
 								pbu = pbu * ma / 0xffff
 								pau = pau * ma / 0xffff
 							}
-							pr += float64(pru) * w
-							pg += float64(pgu) * w
-							pb += float64(pbu) * w
-							pa += float64(pau) * w
+							pr += float32(pru) * w
+							pg += float32(pgu) * w
+							pb += float32(pbu) * w
+							pa += float32(pau) * w
 						}
 					}
 				}
@@ -6533,31 +6532,31 @@ func (q *Kernel) transform_Image_Image_Over(dst Image, dr, adr image.Rectangle, 
 	}
 }
 
-func (q *Kernel) transform_Image_Image_Src(dst Image, dr, adr image.Rectangle, d2s *f64.Aff3, src image.Image, sr image.Rectangle, bias image.Point, xscale, yscale float64, opts *Options) {
+func (q *Kernel) transform_Image_Image_Src(dst Image, dr, adr image.Rectangle, d2s *f32.Aff3, src image.Image, sr image.Rectangle, bias image.Point, xscale, yscale float32, opts *Options) {
 	// When shrinking, broaden the effective kernel support so that we still
 	// visit every source pixel.
-	xHalfWidth, xKernelArgScale := q.Support, 1.0
+	xHalfWidth, xKernelArgScale := q.Support, float32(1.0)
 	if xscale > 1 {
 		xHalfWidth *= xscale
 		xKernelArgScale = 1 / xscale
 	}
-	yHalfWidth, yKernelArgScale := q.Support, 1.0
+	yHalfWidth, yKernelArgScale := q.Support, float32(1.0)
 	if yscale > 1 {
 		yHalfWidth *= yscale
 		yKernelArgScale = 1 / yscale
 	}
 
-	xWeights := make([]float64, 1+2*int(math.Ceil(xHalfWidth)))
-	yWeights := make([]float64, 1+2*int(math.Ceil(yHalfWidth)))
+	xWeights := make([]float32, 1+2*int(math.Ceil(float64(xHalfWidth))))
+	yWeights := make([]float32, 1+2*int(math.Ceil(float64(yHalfWidth))))
 
 	srcMask, smp := opts.SrcMask, opts.SrcMaskP
 	dstMask, dmp := opts.DstMask, opts.DstMaskP
 	dstColorRGBA64 := &color.RGBA64{}
 	dstColor := color.Color(dstColorRGBA64)
 	for dy := int32(adr.Min.Y); dy < int32(adr.Max.Y); dy++ {
-		dyf := float64(dr.Min.Y+int(dy)) + 0.5
+		dyf := float32(dr.Min.Y+int(dy)) + 0.5
 		for dx := int32(adr.Min.X); dx < int32(adr.Max.X); dx++ {
-			dxf := float64(dr.Min.X+int(dx)) + 0.5
+			dxf := float32(dr.Min.X+int(dx)) + 0.5
 			sx := d2s[0]*dxf + d2s[1]*dyf + d2s[2]
 			sy := d2s[3]*dxf + d2s[4]*dyf + d2s[5]
 			if !(image.Point{int(sx) + bias.X, int(sy) + bias.Y}).In(sr) {
@@ -6566,21 +6565,21 @@ func (q *Kernel) transform_Image_Image_Src(dst Image, dr, adr image.Rectangle, d
 
 			// TODO: adjust the bias so that we can use int(f) instead
 			// of math.Floor(f) and math.Ceil(f).
-			sx += float64(bias.X)
+			sx += float32(bias.X)
 			sx -= 0.5
-			ix := int(math.Floor(sx - xHalfWidth))
+			ix := int(math.Floor(float64(sx - xHalfWidth)))
 			if ix < sr.Min.X {
 				ix = sr.Min.X
 			}
-			jx := int(math.Ceil(sx + xHalfWidth))
+			jx := int(math.Ceil(float64(sx + xHalfWidth)))
 			if jx > sr.Max.X {
 				jx = sr.Max.X
 			}
 
-			totalXWeight := 0.0
+			totalXWeight := float32(0.0)
 			for kx := ix; kx < jx; kx++ {
-				xWeight := 0.0
-				if t := abs((sx - float64(kx)) * xKernelArgScale); t < q.Support {
+				xWeight := float32(0.0)
+				if t := abs((sx - float32(kx)) * xKernelArgScale); t < q.Support {
 					xWeight = q.At(t)
 				}
 				xWeights[kx-ix] = xWeight
@@ -6590,21 +6589,21 @@ func (q *Kernel) transform_Image_Image_Src(dst Image, dr, adr image.Rectangle, d
 				xWeights[x] /= totalXWeight
 			}
 
-			sy += float64(bias.Y)
+			sy += float32(bias.Y)
 			sy -= 0.5
-			iy := int(math.Floor(sy - yHalfWidth))
+			iy := int(math.Floor(float64(sy - yHalfWidth)))
 			if iy < sr.Min.Y {
 				iy = sr.Min.Y
 			}
-			jy := int(math.Ceil(sy + yHalfWidth))
+			jy := int(math.Ceil(float64(sy + yHalfWidth)))
 			if jy > sr.Max.Y {
 				jy = sr.Max.Y
 			}
 
-			totalYWeight := 0.0
+			totalYWeight := float32(0.0)
 			for ky := iy; ky < jy; ky++ {
-				yWeight := 0.0
-				if t := abs((sy - float64(ky)) * yKernelArgScale); t < q.Support {
+				yWeight := float32(0.0)
+				if t := abs((sy - float32(ky)) * yKernelArgScale); t < q.Support {
 					yWeight = q.At(t)
 				}
 				yWeights[ky-iy] = yWeight
@@ -6614,7 +6613,7 @@ func (q *Kernel) transform_Image_Image_Src(dst Image, dr, adr image.Rectangle, d
 				yWeights[y] /= totalYWeight
 			}
 
-			var pr, pg, pb, pa float64
+			var pr, pg, pb, pa float32
 			for ky := iy; ky < jy; ky++ {
 				if yWeight := yWeights[ky-iy]; yWeight != 0 {
 					for kx := ix; kx < jx; kx++ {
@@ -6627,10 +6626,10 @@ func (q *Kernel) transform_Image_Image_Src(dst Image, dr, adr image.Rectangle, d
 								pbu = pbu * ma / 0xffff
 								pau = pau * ma / 0xffff
 							}
-							pr += float64(pru) * w
-							pg += float64(pgu) * w
-							pb += float64(pbu) * w
-							pa += float64(pau) * w
+							pr += float32(pru) * w
+							pg += float32(pgu) * w
+							pb += float32(pbu) * w
+							pa += float32(pau) * w
 						}
 					}
 				}

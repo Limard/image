@@ -269,7 +269,7 @@ func testAcc(t *testing.T, in interface{}, mask []uint32, op string) {
 // instructions provide, which often favors speed over accuracy.
 
 // approxEquals returns whether got is within 0.1% of want.
-func approxEquals(got, want float64) bool {
+func approxEquals(got, want float32) bool {
 	const tolerance = 0.001
 	return math.Abs(got-want) <= math.Abs(want)*tolerance
 }
@@ -307,8 +307,8 @@ var sixteen float32 = 16
 // large tolerance. But those tests are more complicated, and if there is a
 // problem with the tolerance constant, debugging this test can be simpler.
 func TestFloat32ArithmeticWithinTolerance(t *testing.T) {
-	x := float64(sixteen) / 1122 // Always use 64-bit division.
-	y := float64(sixteen / 1122) // Use 32- or 64-bit division (GOARCH dependent).
+	x := float32(sixteen) / 1122 // Always use 64-bit division.
+	y := float32(sixteen / 1122) // Use 32- or 64-bit division (GOARCH dependent).
 	if !approxEquals(x, y) {
 		t.Errorf("x and y were not approximately equal:\nx = %v\ny = %v", x, y)
 	}
@@ -320,7 +320,7 @@ func uint32sMatch(xs, ys []uint32) bool {
 	}
 	if runtime.GOARCH == "wasm" {
 		for i := range xs {
-			if !approxEquals(float64(xs[i]), float64(ys[i])) {
+			if !approxEquals(float32(xs[i]), float32(ys[i])) {
 				return false
 			}
 		}
@@ -340,7 +340,7 @@ func float32sMatch(xs, ys []float32) bool {
 	}
 	if runtime.GOARCH == "wasm" {
 		for i := range xs {
-			if !approxEquals(float64(xs[i]), float64(ys[i])) {
+			if !approxEquals(float32(xs[i]), float32(ys[i])) {
 				return false
 			}
 		}
@@ -725,11 +725,11 @@ func TestFixedFloatingCloseness(t *testing.T) {
 	// inaccurate the (faster) fixed point rasterizer is.
 	//
 	// Smaller is better.
-	percent := float64(total*100) / float64(n*65535)
+	percent := float32(total*100) / float32(n*65535)
 	t.Logf("Comparing closeness of the fixed point and floating point rasterizer.\n"+
 		"Specifically, the elements of fxMask16 and flMask16.\n"+
 		"Total diff = %d, n = %d, avg = %.5f out of 65535, or %.5f%%.\n",
-		total, n, float64(total)/float64(n), percent)
+		total, n, float32(total)/float32(n), percent)
 
 	const thresholdPercent = 1.0
 	if percent > thresholdPercent {

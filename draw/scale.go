@@ -7,12 +7,11 @@
 package draw
 
 import (
+	"github.com/Limard/image/math/f32"
 	"image"
 	"image/color"
 	"math"
 	"sync"
-
-	"github.com/Limard/image/math/f64"
 )
 
 // Copy copies the part of the source image defined by src and sr and writes
@@ -54,7 +53,7 @@ type Scaler interface {
 //
 // A Transformer is safe to use concurrently.
 type Transformer interface {
-	Transform(dst Image, m f64.Aff3, src image.Image, sr image.Rectangle, op Op, opts *Options)
+	Transform(dst Image, m f32.Aff3, src image.Image, sr image.Rectangle, op Op, opts *Options)
 }
 
 // Options are optional parameters to Copy, Scale and Transform.
@@ -115,10 +114,10 @@ type Interpolator interface {
 type Kernel struct {
 	// Support is the kernel support and must be >= 0. At(t) is assumed to be
 	// zero when t >= Support.
-	Support float64
+	Support float32
 	// At is the kernel function. It will only be called with t in the
 	// range [0, Support).
-	At func(t float64) float64
+	At func(t float32) float32
 }
 
 // Scale implements the Scaler interface.
@@ -170,7 +169,7 @@ var (
 
 	// BiLinear is the tent kernel. It is slow, but usually gives high quality
 	// results.
-	BiLinear = &Kernel{1, func(t float64) float64 {
+	BiLinear = &Kernel{1, func(t float32) float32 {
 		return 1 - t
 	}}
 
@@ -180,7 +179,7 @@ var (
 	// It is an instance of the more general cubic BC-spline kernel with parameters
 	// B=0 and C=0.5. See Mitchell and Netravali, "Reconstruction Filters in
 	// Computer Graphics", Computer Graphics, Vol. 22, No. 4, pp. 221-228.
-	CatmullRom = &Kernel{2, func(t float64) float64 {
+	CatmullRom = &Kernel{2, func(t float32) float32 {
 		if t < 1 {
 			return (1.5*t-2.5)*t*t + 1
 		}
@@ -201,22 +200,22 @@ type kernelScaler struct {
 	pool                 sync.Pool
 }
 
-func (z *kernelScaler) makeTmpBuf() [][4]float64 {
-	return make([][4]float64, z.dw*z.sh)
+func (z *kernelScaler) makeTmpBuf() [][4]float32 {
+	return make([][4]float32, z.dw*z.sh)
 }
 
 // source is a range of contribs, their inverse total weight, and that ITW
 // divided by 0xffff.
 type source struct {
 	i, j               int32
-	invTotalWeight     float64
-	invTotalWeightFFFF float64
+	invTotalWeight     float32
+	invTotalWeightFFFF float32
 }
 
 // contrib is the weight of a column or row.
 type contrib struct {
 	coord  int32
-	weight float64
+	weight float32
 }
 
 // distrib measures how source pixels are distributed over destination pixels.
@@ -231,8 +230,8 @@ type distrib struct {
 // newDistrib returns a distrib that distributes sw source columns (or rows)
 // over dw destination columns (or rows).
 func newDistrib(q *Kernel, dw, sw int32) distrib {
-	scale := float64(sw) / float64(dw)
-	halfWidth, kernelArgScale := q.Support, 1.0
+	scale := float32(sw) / float32(dw)
+	halfWidth, kernelArgScale := q.Support, float32(1.0)
 	// When shrinking, broaden the effective kernel support so that we still
 	// visit every source pixel.
 	if scale > 1 {
@@ -247,12 +246,12 @@ func newDistrib(q *Kernel, dw, sw int32) distrib {
 	// source column or row.
 	n, sources := int32(0), make([]source, dw)
 	for x := range sources {
-		center := (float64(x)+0.5)*scale - 0.5
-		i := int32(math.Floor(center - halfWidth))
+		center := (float32(x)+0.5)*scale - 0.5
+		i := int32(math.Floor(float64(center - halfWidth)))
 		if i < 0 {
 			i = 0
 		}
-		j := int32(math.Ceil(center + halfWidth))
+		j := int32(math.Ceil(float64(center + halfWidth)))
 		if j > sw {
 			j = sw
 			if j < i {
@@ -265,10 +264,10 @@ func newDistrib(q *Kernel, dw, sw int32) distrib {
 
 	contribs := make([]contrib, 0, n)
 	for k, b := range sources {
-		totalWeight := 0.0
+		totalWeight := float32(0.0)
 		l := int32(len(contribs))
 		for coord := b.i; coord < b.j; coord++ {
-			t := abs((b.invTotalWeight - float64(coord)) * kernelArgScale)
+			t := abs((b.invTotalWeight - float32(coord)) * kernelArgScale)
 			if t >= q.Support {
 				continue
 			}
@@ -293,7 +292,7 @@ func newDistrib(q *Kernel, dw, sw int32) distrib {
 
 // abs is like math.Abs, but it doesn't care about negative zero, infinities or
 // NaNs.
-func abs(f float64) float64 {
+func abs(f float32) float32 {
 	if f < 0 {
 		f = -f
 	}
@@ -301,7 +300,7 @@ func abs(f float64) float64 {
 }
 
 // ftou converts the range [0.0, 1.0] to [0, 0xffff].
-func ftou(f float64) uint16 {
+func ftou(f float32) uint16 {
 	i := int32(0xffff*f + 0.5)
 	if i > 0xffff {
 		return 0xffff
@@ -313,7 +312,7 @@ func ftou(f float64) uint16 {
 }
 
 // fffftou converts the range [0.0, 65535.0] to [0, 0xffff].
-func fffftou(f float64) uint16 {
+func fffftou(f float32) uint16 {
 	i := int32(f + 0.5)
 	if i > 0xffff {
 		return 0xffff
@@ -326,10 +325,10 @@ func fffftou(f float64) uint16 {
 
 // invert returns the inverse of m.
 //
-// TODO: move this into the f64 package, once we work out the convention for
+// TODO: move this into the f32 package, once we work out the convention for
 // matrix methods in that package: do they modify the receiver, take a dst
 // pointer argument, or return a new value?
-func invert(m *f64.Aff3) f64.Aff3 {
+func invert(m *f32.Aff3) f32.Aff3 {
 	m00 := +m[3*1+1]
 	m01 := -m[3*0+1]
 	m02 := +m[3*1+2]*m[3*0+1] - m[3*1+1]*m[3*0+2]
@@ -339,7 +338,7 @@ func invert(m *f64.Aff3) f64.Aff3 {
 
 	det := m00*m11 - m10*m01
 
-	return f64.Aff3{
+	return f32.Aff3{
 		m00 / det,
 		m01 / det,
 		m02 / det,
@@ -349,8 +348,8 @@ func invert(m *f64.Aff3) f64.Aff3 {
 	}
 }
 
-func matMul(p, q *f64.Aff3) f64.Aff3 {
-	return f64.Aff3{
+func matMul(p, q *f32.Aff3) f32.Aff3 {
+	return f32.Aff3{
 		p[3*0+0]*q[3*0+0] + p[3*0+1]*q[3*1+0],
 		p[3*0+0]*q[3*0+1] + p[3*0+1]*q[3*1+1],
 		p[3*0+0]*q[3*0+2] + p[3*0+1]*q[3*1+2] + p[3*0+2],
@@ -361,7 +360,7 @@ func matMul(p, q *f64.Aff3) f64.Aff3 {
 }
 
 // transformRect returns a rectangle dr that contains sr transformed by s2d.
-func transformRect(s2d *f64.Aff3, sr *image.Rectangle) (dr image.Rectangle) {
+func transformRect(s2d *f32.Aff3, sr *image.Rectangle) (dr image.Rectangle) {
 	ps := [...]image.Point{
 		{sr.Min.X, sr.Min.Y},
 		{sr.Max.X, sr.Min.Y},
@@ -369,10 +368,10 @@ func transformRect(s2d *f64.Aff3, sr *image.Rectangle) (dr image.Rectangle) {
 		{sr.Max.X, sr.Max.Y},
 	}
 	for i, p := range ps {
-		sxf := float64(p.X)
-		syf := float64(p.Y)
-		dx := int(math.Floor(s2d[0]*sxf + s2d[1]*syf + s2d[2]))
-		dy := int(math.Floor(s2d[3]*sxf + s2d[4]*syf + s2d[5]))
+		sxf := float32(p.X)
+		syf := float32(p.Y)
+		dx := int(math.Floor(float64(s2d[0]*sxf + s2d[1]*syf + s2d[2])))
+		dy := int(math.Floor(float64(s2d[3]*sxf + s2d[4]*syf + s2d[5])))
 
 		// The +1 adjustments below are because an image.Rectangle is inclusive
 		// on the low end but exclusive on the high end.
@@ -415,7 +414,7 @@ func clipAffectedDestRect(adr image.Rectangle, dstMask image.Image, dstMaskP ima
 	return adr, dstMask
 }
 
-func transform_Uniform(dst Image, dr, adr image.Rectangle, d2s *f64.Aff3, src *image.Uniform, sr image.Rectangle, bias image.Point, op Op) {
+func transform_Uniform(dst Image, dr, adr image.Rectangle, d2s *f32.Aff3, src *image.Uniform, sr image.Rectangle, bias image.Point, op Op) {
 	switch op {
 	case Over:
 		switch dst := dst.(type) {
@@ -424,10 +423,10 @@ func transform_Uniform(dst Image, dr, adr image.Rectangle, d2s *f64.Aff3, src *i
 			pa1 := (0xffff - pa) * 0x101
 
 			for dy := int32(adr.Min.Y); dy < int32(adr.Max.Y); dy++ {
-				dyf := float64(dr.Min.Y+int(dy)) + 0.5
+				dyf := float32(dr.Min.Y+int(dy)) + 0.5
 				d := dst.PixOffset(dr.Min.X+adr.Min.X, dr.Min.Y+int(dy))
 				for dx := int32(adr.Min.X); dx < int32(adr.Max.X); dx, d = dx+1, d+4 {
-					dxf := float64(dr.Min.X+int(dx)) + 0.5
+					dxf := float32(dr.Min.X+int(dx)) + 0.5
 					sx0 := int(d2s[0]*dxf+d2s[1]*dyf+d2s[2]) + bias.X
 					sy0 := int(d2s[3]*dxf+d2s[4]*dyf+d2s[5]) + bias.Y
 					if !(image.Point{sx0, sy0}).In(sr) {
@@ -447,9 +446,9 @@ func transform_Uniform(dst Image, dr, adr image.Rectangle, d2s *f64.Aff3, src *i
 			dstColor := color.Color(dstColorRGBA64)
 
 			for dy := int32(adr.Min.Y); dy < int32(adr.Max.Y); dy++ {
-				dyf := float64(dr.Min.Y+int(dy)) + 0.5
+				dyf := float32(dr.Min.Y+int(dy)) + 0.5
 				for dx := int32(adr.Min.X); dx < int32(adr.Max.X); dx++ {
-					dxf := float64(dr.Min.X+int(dx)) + 0.5
+					dxf := float32(dr.Min.X+int(dx)) + 0.5
 					sx0 := int(d2s[0]*dxf+d2s[1]*dyf+d2s[2]) + bias.X
 					sy0 := int(d2s[3]*dxf+d2s[4]*dyf+d2s[5]) + bias.Y
 					if !(image.Point{sx0, sy0}).In(sr) {
@@ -475,10 +474,10 @@ func transform_Uniform(dst Image, dr, adr image.Rectangle, d2s *f64.Aff3, src *i
 			pa8 := uint8(pa >> 8)
 
 			for dy := int32(adr.Min.Y); dy < int32(adr.Max.Y); dy++ {
-				dyf := float64(dr.Min.Y+int(dy)) + 0.5
+				dyf := float32(dr.Min.Y+int(dy)) + 0.5
 				d := dst.PixOffset(dr.Min.X+adr.Min.X, dr.Min.Y+int(dy))
 				for dx := int32(adr.Min.X); dx < int32(adr.Max.X); dx, d = dx+1, d+4 {
-					dxf := float64(dr.Min.X+int(dx)) + 0.5
+					dxf := float32(dr.Min.X+int(dx)) + 0.5
 					sx0 := int(d2s[0]*dxf+d2s[1]*dyf+d2s[2]) + bias.X
 					sy0 := int(d2s[3]*dxf+d2s[4]*dyf+d2s[5]) + bias.Y
 					if !(image.Point{sx0, sy0}).In(sr) {
@@ -502,9 +501,9 @@ func transform_Uniform(dst Image, dr, adr image.Rectangle, d2s *f64.Aff3, src *i
 			dstColor := color.Color(dstColorRGBA64)
 
 			for dy := int32(adr.Min.Y); dy < int32(adr.Max.Y); dy++ {
-				dyf := float64(dr.Min.Y+int(dy)) + 0.5
+				dyf := float32(dr.Min.Y+int(dy)) + 0.5
 				for dx := int32(adr.Min.X); dx < int32(adr.Max.X); dx++ {
-					dxf := float64(dr.Min.X+int(dx)) + 0.5
+					dxf := float32(dr.Min.X+int(dx)) + 0.5
 					sx0 := int(d2s[0]*dxf+d2s[1]*dyf+d2s[2]) + bias.X
 					sy0 := int(d2s[3]*dxf+d2s[4]*dyf+d2s[5]) + bias.Y
 					if !(image.Point{sx0, sy0}).In(sr) {

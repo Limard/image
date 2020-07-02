@@ -134,7 +134,7 @@ func testFontKerning(fname string) func(*testing.T) {
 		log.Printf("found %d kerning pairs for %d glyphs (%.1f%%) in %q",
 			kerned,
 			len(glyphs),
-			100*float64(kerned)/float64(len(glyphs)*len(glyphs)),
+			100*float32(kerned)/float32(len(glyphs)*len(glyphs)),
 			fname,
 		)
 	}

@@ -623,10 +623,10 @@ func expnDollar(prefix, dollar, suffix string, d *data) string {
 			switch d.sType {
 			default:
 				fmt.Fprintf(buf, ""+
-					"%sr %s float64(%sru)%s\n"+
-					"%sg %s float64(%sgu)%s\n"+
-					"%sb %s float64(%sbu)%s\n"+
-					"%sa %s float64(%sau)%s\n",
+					"%sr %s float32(%sru)%s\n"+
+					"%sg %s float32(%sgu)%s\n"+
+					"%sb %s float32(%sbu)%s\n"+
+					"%sa %s float32(%sau)%s\n",
 					lhs, eqOp, lhs, extra,
 					lhs, eqOp, lhs, extra,
 					lhs, eqOp, lhs, extra,
@@ -634,14 +634,14 @@ func expnDollar(prefix, dollar, suffix string, d *data) string {
 				)
 			case "*image.Gray":
 				fmt.Fprintf(buf, ""+
-					"%sr %s float64(%sru)%s\n",
+					"%sr %s float32(%sru)%s\n",
 					lhs, eqOp, lhs, extra,
 				)
 			case "*image.YCbCr":
 				fmt.Fprintf(buf, ""+
-					"%sr %s float64(%sru)%s\n"+
-					"%sg %s float64(%sgu)%s\n"+
-					"%sb %s float64(%sbu)%s\n",
+					"%sr %s float32(%sru)%s\n"+
+					"%sg %s float32(%sgu)%s\n"+
+					"%sb %s float32(%sbu)%s\n",
 					lhs, eqOp, lhs, extra,
 					lhs, eqOp, lhs, extra,
 					lhs, eqOp, lhs, extra,
@@ -925,7 +925,7 @@ const (
 			if s2d[0] == 1 && s2d[1] == 0 && s2d[3] == 0 && s2d[4] == 1 {
 				dx := int(s2d[2])
 				dy := int(s2d[5])
-				if float64(dx) == s2d[2] && float64(dy) == s2d[5] {
+				if float32(dx) == s2d[2] && float32(dy) == s2d[5] {
 					Copy(dst, image.Point{X: sr.Min.X + dx, Y: sr.Min.X + dy}, src, sr, op, opts)
 					return
 				}
@@ -958,8 +958,8 @@ const (
 			bias := transformRect(&d2s, &adr).Min
 			bias.X--
 			bias.Y--
-			d2s[2] -= float64(bias.X)
-			d2s[5] -= float64(bias.Y)
+			d2s[2] -= float32(bias.X)
+			d2s[5] -= float32(bias.Y)
 			// Make adr relative to dr.Min.
 			adr = adr.Sub(dr.Min)
 			// sr is the source pixels. If it extends beyond the src bounds,
@@ -1005,10 +1005,10 @@ const (
 		func (nnInterpolator) transform_$dTypeRN_$sTypeRN$sratio_$op(dst $dType, dr, adr image.Rectangle, d2s *f64.Aff3, src $sType, sr image.Rectangle, bias image.Point, opts *Options) {
 			$preOuter
 			for dy := int32(adr.Min.Y); dy < int32(adr.Max.Y); dy++ {
-				dyf := float64(dr.Min.Y + int(dy)) + 0.5
+				dyf := float32(dr.Min.Y + int(dy)) + 0.5
 				$preInner
 				for dx := int32(adr.Min.X); dx < int32(adr.Max.X); dx++ { $tweakDx
-					dxf := float64(dr.Min.X + int(dx)) + 0.5
+					dxf := float32(dr.Min.X + int(dx)) + 0.5
 					sx0 := int(d2s[0]*dxf + d2s[1]*dyf + d2s[2]) + bias.X
 					sy0 := int(d2s[3]*dxf + d2s[4]*dyf + d2s[5]) + bias.Y
 					if !(image.Point{sx0, sy0}).In(sr) {
@@ -1025,18 +1025,18 @@ const (
 		func (ablInterpolator) scale_$dTypeRN_$sTypeRN$sratio_$op(dst $dType, dr, adr image.Rectangle, src $sType, sr image.Rectangle, opts *Options) {
 			sw := int32(sr.Dx())
 			sh := int32(sr.Dy())
-			yscale := float64(sh) / float64(dr.Dy())
-			xscale := float64(sw) / float64(dr.Dx())
+			yscale := float32(sh) / float32(dr.Dy())
+			xscale := float32(sw) / float32(dr.Dx())
 			swMinus1, shMinus1 := sw - 1, sh - 1
 			$preOuter
 
 			for dy := int32(adr.Min.Y); dy < int32(adr.Max.Y); dy++ {
-				sy := (float64(dy)+0.5)*yscale - 0.5
+				sy := (float32(dy)+0.5)*yscale - 0.5
 				// If sy < 0, we will clamp sy0 to 0 anyway, so it doesn't matter if
 				// we say int32(sy) instead of int32(math.Floor(sy)). Similarly for
 				// sx, below.
 				sy0 := int32(sy)
-				yFrac0 := sy - float64(sy0)
+				yFrac0 := sy - float32(sy0)
 				yFrac1 := 1 - yFrac0
 				sy1 := sy0 + 1
 				if sy < 0 {
@@ -1049,9 +1049,9 @@ const (
 				$preInner
 
 				for dx := int32(adr.Min.X); dx < int32(adr.Max.X); dx++ { $tweakDx
-					sx := (float64(dx)+0.5)*xscale - 0.5
+					sx := (float32(dx)+0.5)*xscale - 0.5
 					sx0 := int32(sx)
-					xFrac0 := sx - float64(sx0)
+					xFrac0 := sx - float32(sx0)
 					xFrac1 := 1 - xFrac0
 					sx1 := sx0 + 1
 					if sx < 0 {
@@ -1080,10 +1080,10 @@ const (
 		func (ablInterpolator) transform_$dTypeRN_$sTypeRN$sratio_$op(dst $dType, dr, adr image.Rectangle, d2s *f64.Aff3, src $sType, sr image.Rectangle, bias image.Point, opts *Options) {
 			$preOuter
 			for dy := int32(adr.Min.Y); dy < int32(adr.Max.Y); dy++ {
-				dyf := float64(dr.Min.Y + int(dy)) + 0.5
+				dyf := float32(dr.Min.Y + int(dy)) + 0.5
 				$preInner
 				for dx := int32(adr.Min.X); dx < int32(adr.Max.X); dx++ { $tweakDx
-					dxf := float64(dr.Min.X + int(dx)) + 0.5
+					dxf := float32(dr.Min.X + int(dx)) + 0.5
 					sx := d2s[0]*dxf + d2s[1]*dyf + d2s[2]
 					sy := d2s[3]*dxf + d2s[4]*dyf + d2s[5]
 					if !(image.Point{int(sx) + bias.X, int(sy) + bias.Y}).In(sr) {
@@ -1092,7 +1092,7 @@ const (
 
 					sx -= 0.5
 					sx0 := int(sx)
-					xFrac0 := sx - float64(sx0)
+					xFrac0 := sx - float32(sx0)
 					xFrac1 := 1 - xFrac0
 					sx0 += bias.X
 					sx1 := sx0 + 1
@@ -1106,7 +1106,7 @@ const (
 
 					sy -= 0.5
 					sy0 := int(sy)
-					yFrac0 := sy - float64(sy0)
+					yFrac0 := sy - float32(sy0)
 					yFrac1 := 1 - yFrac0
 					sy0 += bias.Y
 					sy1 := sy0 + 1
@@ -1164,9 +1164,9 @@ const (
 			// Create a temporary buffer:
 			// scaleX distributes the source image's columns over the temporary image.
 			// scaleY distributes the temporary image's rows over the destination image.
-			var tmp [][4]float64
+			var tmp [][4]float32
 			if z.pool.New != nil {
-				tmpp := z.pool.Get().(*[][4]float64)
+				tmpp := z.pool.Get().(*[][4]float32)
 				defer z.pool.Put(tmpp)
 				tmp = *tmpp
 			} else {
@@ -1223,8 +1223,8 @@ const (
 			bias := transformRect(&d2s, &adr).Min
 			bias.X--
 			bias.Y--
-			d2s[2] -= float64(bias.X)
-			d2s[5] -= float64(bias.Y)
+			d2s[2] -= float32(bias.X)
+			d2s[5] -= float32(bias.Y)
 			// Make adr relative to dr.Min.
 			adr = adr.Sub(dr.Min)
 
@@ -1261,17 +1261,17 @@ const (
 	`
 
 	codeKernelScaleLeafX = `
-		func (z *kernelScaler) scaleX_$sTypeRN$sratio(tmp [][4]float64, src $sType, sr image.Rectangle, opts *Options) {
+		func (z *kernelScaler) scaleX_$sTypeRN$sratio(tmp [][4]float32, src $sType, sr image.Rectangle, opts *Options) {
 			t := 0
 			$preKernelOuter
 			for y := int32(0); y < z.sh; y++ {
 				for _, s := range z.horizontal.sources {
-					var pr, pg, pb, pa float64 $tweakVarP
+					var pr, pg, pb, pa float32 $tweakVarP
 					for _, c := range z.horizontal.contribs[s.i:s.j] {
 						p += $srcf[sr.Min.X + int(c.coord), sr.Min.Y + int(y)] * c.weight
 					}
 					$tweakPr
-					tmp[t] = [4]float64{
+					tmp[t] = [4]float32{
 						pr * s.invTotalWeightFFFF, $tweakP
 						pg * s.invTotalWeightFFFF, $tweakP
 						pb * s.invTotalWeightFFFF, $tweakP
@@ -1284,12 +1284,12 @@ const (
 	`
 
 	codeKernelScaleLeafY = `
-		func (z *kernelScaler) scaleY_$dTypeRN_$op(dst $dType, dr, adr image.Rectangle, tmp [][4]float64, opts *Options) {
+		func (z *kernelScaler) scaleY_$dTypeRN_$op(dst $dType, dr, adr image.Rectangle, tmp [][4]float32, opts *Options) {
 			$preOuter
 			for dx := int32(adr.Min.X); dx < int32(adr.Max.X); dx++ {
 				$preKernelInner
 				for dy, s := range z.vertical.sources[adr.Min.Y:adr.Max.Y] { $tweakDy
-					var pr, pg, pb, pa float64
+					var pr, pg, pb, pa float32
 					for _, c := range z.vertical.contribs[s.i:s.j] {
 						p := &tmp[c.coord*z.dw+dx]
 						pr += p[0] * c.weight
@@ -1306,7 +1306,7 @@ const (
 	`
 
 	codeKernelTransformLeaf = `
-		func (q *Kernel) transform_$dTypeRN_$sTypeRN$sratio_$op(dst $dType, dr, adr image.Rectangle, d2s *f64.Aff3, src $sType, sr image.Rectangle, bias image.Point, xscale, yscale float64, opts *Options) {
+		func (q *Kernel) transform_$dTypeRN_$sTypeRN$sratio_$op(dst $dType, dr, adr image.Rectangle, d2s *f64.Aff3, src $sType, sr image.Rectangle, bias image.Point, xscale, yscale float32, opts *Options) {
 			// When shrinking, broaden the effective kernel support so that we still
 			// visit every source pixel.
 			xHalfWidth, xKernelArgScale := q.Support, 1.0
@@ -1320,15 +1320,15 @@ const (
 				yKernelArgScale = 1 / yscale
 			}
 
-			xWeights := make([]float64, 1 + 2*int(math.Ceil(xHalfWidth)))
-			yWeights := make([]float64, 1 + 2*int(math.Ceil(yHalfWidth)))
+			xWeights := make([]float32, 1 + 2*int(math.Ceil(xHalfWidth)))
+			yWeights := make([]float32, 1 + 2*int(math.Ceil(yHalfWidth)))
 
 			$preOuter
 			for dy := int32(adr.Min.Y); dy < int32(adr.Max.Y); dy++ {
-				dyf := float64(dr.Min.Y + int(dy)) + 0.5
+				dyf := float32(dr.Min.Y + int(dy)) + 0.5
 				$preInner
 				for dx := int32(adr.Min.X); dx < int32(adr.Max.X); dx++ { $tweakDx
-					dxf := float64(dr.Min.X + int(dx)) + 0.5
+					dxf := float32(dr.Min.X + int(dx)) + 0.5
 					sx := d2s[0]*dxf + d2s[1]*dyf + d2s[2]
 					sy := d2s[3]*dxf + d2s[4]*dyf + d2s[5]
 					if !(image.Point{int(sx) + bias.X, int(sy) + bias.Y}).In(sr) {
@@ -1337,7 +1337,7 @@ const (
 
 					// TODO: adjust the bias so that we can use int(f) instead
 					// of math.Floor(f) and math.Ceil(f).
-					sx += float64(bias.X)
+					sx += float32(bias.X)
 					sx -= 0.5
 					ix := int(math.Floor(sx - xHalfWidth))
 					if ix < sr.Min.X {
@@ -1351,7 +1351,7 @@ const (
 					totalXWeight := 0.0
 					for kx := ix; kx < jx; kx++ {
 						xWeight := 0.0
-						if t := abs((sx - float64(kx)) * xKernelArgScale); t < q.Support {
+						if t := abs((sx - float32(kx)) * xKernelArgScale); t < q.Support {
 							xWeight = q.At(t)
 						}
 						xWeights[kx - ix] = xWeight
@@ -1361,7 +1361,7 @@ const (
 						xWeights[x] /= totalXWeight
 					}
 
-					sy += float64(bias.Y)
+					sy += float32(bias.Y)
 					sy -= 0.5
 					iy := int(math.Floor(sy - yHalfWidth))
 					if iy < sr.Min.Y {
@@ -1375,7 +1375,7 @@ const (
 					totalYWeight := 0.0
 					for ky := iy; ky < jy; ky++ {
 						yWeight := 0.0
-						if t := abs((sy - float64(ky)) * yKernelArgScale); t < q.Support {
+						if t := abs((sy - float32(ky)) * yKernelArgScale); t < q.Support {
 							yWeight = q.At(t)
 						}
 						yWeights[ky - iy] = yWeight
@@ -1385,7 +1385,7 @@ const (
 						yWeights[y] /= totalYWeight
 					}
 
-					var pr, pg, pb, pa float64 $tweakVarP
+					var pr, pg, pb, pa float32 $tweakVarP
 					for ky := iy; ky < jy; ky++ {
 						if yWeight := yWeights[ky - iy]; yWeight != 0 {
 							for kx := ix; kx < jx; kx++ {

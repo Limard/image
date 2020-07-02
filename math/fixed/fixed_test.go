@@ -11,7 +11,7 @@ import (
 )
 
 var testCases = []struct {
-	x      float64
+	x      float32
 	s26_6  string
 	s52_12 string
 	floor  int
@@ -123,10 +123,10 @@ func TestInt52_12(t *testing.T) {
 }
 
 var mulTestCases = []struct {
-	x      float64
-	y      float64
-	z26_6  float64 // Equals truncate26_6(x)*truncate26_6(y).
-	z52_12 float64 // Equals truncate52_12(x)*truncate52_12(y).
+	x      float32
+	y      float32
+	z26_6  float32 // Equals truncate26_6(x)*truncate26_6(y).
+	z52_12 float32 // Equals truncate52_12(x)*truncate52_12(y).
 	s26_6  string
 	s52_12 string
 }{{
@@ -221,7 +221,7 @@ func TestInt26_6Mul(t *testing.T) {
 	for _, tc := range mulTestCases {
 		x := Int26_6(tc.x * (1 << 6))
 		y := Int26_6(tc.y * (1 << 6))
-		if z := float64(x) * float64(y) / (1 << 12); z != tc.z26_6 {
+		if z := float32(x) * float32(y) / (1 << 12); z != tc.z26_6 {
 			t.Errorf("tc.x=%v, tc.y=%v: z: got %v, want %v", tc.x, tc.y, z, tc.z26_6)
 			continue
 		}
@@ -235,7 +235,7 @@ func TestInt52_12Mul(t *testing.T) {
 	for _, tc := range mulTestCases {
 		x := Int52_12(tc.x * (1 << 12))
 		y := Int52_12(tc.y * (1 << 12))
-		if z := float64(x) * float64(y) / (1 << 24); z != tc.z52_12 {
+		if z := float32(x) * float32(y) / (1 << 24); z != tc.z52_12 {
 			t.Errorf("tc.x=%v, tc.y=%v: z: got %v, want %v", tc.x, tc.y, z, tc.z52_12)
 			continue
 		}
@@ -251,7 +251,7 @@ func TestInt26_6MulByOneMinusIota(t *testing.T) {
 		fracBits  = 6
 
 		oneMinusIota  = Int26_6(1<<fracBits) - 1
-		oneMinusIotaF = float64(oneMinusIota) / (1 << fracBits)
+		oneMinusIotaF = float32(oneMinusIota) / (1 << fracBits)
 	)
 
 	for _, neg := range []bool{false, true} {
@@ -268,8 +268,8 @@ func TestInt26_6MulByOneMinusIota(t *testing.T) {
 			want := Int26_6(0)
 			if -1<<fracBits < x && x < 1<<fracBits {
 				// (x * oneMinusIota) isn't exactly representable as an
-				// Int26_6. Calculate the rounded value using float64 math.
-				xF := float64(x) / (1 << fracBits)
+				// Int26_6. Calculate the rounded value using float32 math.
+				xF := float32(x) / (1 << fracBits)
 				wantF := xF * oneMinusIotaF * (1 << fracBits)
 				want = Int26_6(math.Floor(wantF + 0.5))
 			} else {
@@ -296,7 +296,7 @@ func TestInt52_12MulByOneMinusIota(t *testing.T) {
 		fracBits  = 12
 
 		oneMinusIota  = Int52_12(1<<fracBits) - 1
-		oneMinusIotaF = float64(oneMinusIota) / (1 << fracBits)
+		oneMinusIotaF = float32(oneMinusIota) / (1 << fracBits)
 	)
 
 	for _, neg := range []bool{false, true} {
@@ -313,8 +313,8 @@ func TestInt52_12MulByOneMinusIota(t *testing.T) {
 			want := Int52_12(0)
 			if -1<<fracBits < x && x < 1<<fracBits {
 				// (x * oneMinusIota) isn't exactly representable as an
-				// Int52_12. Calculate the rounded value using float64 math.
-				xF := float64(x) / (1 << fracBits)
+				// Int52_12. Calculate the rounded value using float32 math.
+				xF := float32(x) / (1 << fracBits)
 				wantF := xF * oneMinusIotaF * (1 << fracBits)
 				want = Int52_12(math.Floor(wantF + 0.5))
 			} else {

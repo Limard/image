@@ -15,8 +15,8 @@ import (
 // FaceOptions describes the possible options given to NewFace when
 // creating a new font.Face from a sfnt.Font.
 type FaceOptions struct {
-	Size    float64      // Size is the font size in points
-	DPI     float64      // DPI is the dots per inch resolution
+	Size    float32      // Size is the font size in points
+	DPI     float32      // DPI is the dots per inch resolution
 	Hinting font.Hinting // Hinting selects how to quantize a vector font's glyph nodes
 }
 
