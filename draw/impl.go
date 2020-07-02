@@ -7,7 +7,8 @@ import (
 	"image/color"
 	"math"
 
-	"golang.org/x/image/math/f64"
+	"github.com/Limard/image/math/f32"
+	"github.com/Limard/image/math/f64"
 )
 
 func (z nnInterpolator) Scale(dst Image, dr image.Rectangle, src image.Image, sr image.Rectangle, op Op, opts *Options) {
@@ -4092,12 +4093,12 @@ func (ablInterpolator) transform_RGBA_Image_Over(dst *image.RGBA, dr, adr image.
 	}
 }
 
-func (ablInterpolator) transform_RGBA_Image_Src(dst *image.RGBA, dr, adr image.Rectangle, d2s *f64.Aff3, src image.Image, sr image.Rectangle, bias image.Point, opts *Options) {
+func (ablInterpolator) transform_RGBA_Image_Src(dst *image.RGBA, dr, adr image.Rectangle, d2s *f32.Aff3, src image.Image, sr image.Rectangle, bias image.Point, opts *Options) {
 	for dy := int32(adr.Min.Y); dy < int32(adr.Max.Y); dy++ {
-		dyf := float64(dr.Min.Y+int(dy)) + 0.5
+		dyf := float32(dr.Min.Y+int(dy)) + 0.5
 		d := (dr.Min.Y+int(dy)-dst.Rect.Min.Y)*dst.Stride + (dr.Min.X+adr.Min.X-dst.Rect.Min.X)*4
 		for dx := int32(adr.Min.X); dx < int32(adr.Max.X); dx, d = dx+1, d+4 {
-			dxf := float64(dr.Min.X+int(dx)) + 0.5
+			dxf := float32(dr.Min.X+int(dx)) + 0.5
 			sx := d2s[0]*dxf + d2s[1]*dyf + d2s[2]
 			sy := d2s[3]*dxf + d2s[4]*dyf + d2s[5]
 			if !(image.Point{int(sx) + bias.X, int(sy) + bias.Y}).In(sr) {
@@ -4106,7 +4107,7 @@ func (ablInterpolator) transform_RGBA_Image_Src(dst *image.RGBA, dr, adr image.R
 
 			sx -= 0.5
 			sx0 := int(sx)
-			xFrac0 := sx - float64(sx0)
+			xFrac0 := sx - float32(sx0)
 			xFrac1 := 1 - xFrac0
 			sx0 += bias.X
 			sx1 := sx0 + 1
@@ -4120,7 +4121,7 @@ func (ablInterpolator) transform_RGBA_Image_Src(dst *image.RGBA, dr, adr image.R
 
 			sy -= 0.5
 			sy0 := int(sy)
-			yFrac0 := sy - float64(sy0)
+			yFrac0 := sy - float32(sy0)
 			yFrac1 := 1 - yFrac0
 			sy0 += bias.Y
 			sy1 := sy0 + 1
@@ -4133,29 +4134,29 @@ func (ablInterpolator) transform_RGBA_Image_Src(dst *image.RGBA, dr, adr image.R
 			}
 
 			s00ru, s00gu, s00bu, s00au := src.At(sx0, sy0).RGBA()
-			s00r := float64(s00ru)
-			s00g := float64(s00gu)
-			s00b := float64(s00bu)
-			s00a := float64(s00au)
+			s00r := float32(s00ru)
+			s00g := float32(s00gu)
+			s00b := float32(s00bu)
+			s00a := float32(s00au)
 			s10ru, s10gu, s10bu, s10au := src.At(sx1, sy0).RGBA()
-			s10r := float64(s10ru)
-			s10g := float64(s10gu)
-			s10b := float64(s10bu)
-			s10a := float64(s10au)
+			s10r := float32(s10ru)
+			s10g := float32(s10gu)
+			s10b := float32(s10bu)
+			s10a := float32(s10au)
 			s10r = xFrac1*s00r + xFrac0*s10r
 			s10g = xFrac1*s00g + xFrac0*s10g
 			s10b = xFrac1*s00b + xFrac0*s10b
 			s10a = xFrac1*s00a + xFrac0*s10a
 			s01ru, s01gu, s01bu, s01au := src.At(sx0, sy1).RGBA()
-			s01r := float64(s01ru)
-			s01g := float64(s01gu)
-			s01b := float64(s01bu)
-			s01a := float64(s01au)
+			s01r := float32(s01ru)
+			s01g := float32(s01gu)
+			s01b := float32(s01bu)
+			s01a := float32(s01au)
 			s11ru, s11gu, s11bu, s11au := src.At(sx1, sy1).RGBA()
-			s11r := float64(s11ru)
-			s11g := float64(s11gu)
-			s11b := float64(s11bu)
-			s11a := float64(s11au)
+			s11r := float32(s11ru)
+			s11g := float32(s11gu)
+			s11b := float32(s11bu)
+			s11a := float32(s11au)
 			s11r = xFrac1*s01r + xFrac0*s11r
 			s11g = xFrac1*s01g + xFrac0*s11g
 			s11b = xFrac1*s01b + xFrac0*s11b

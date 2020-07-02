@@ -6,7 +6,7 @@
 
 // Package sfnt implements a decoder for SFNT font file formats, including
 // TrueType and OpenType.
-package sfnt // import "golang.org/x/image/font/sfnt"
+package sfnt // import "github.com/Limard/image/font/sfnt"
 
 // This implementation was written primarily to the
 // https://www.microsoft.com/en-us/Typography/OpenTypeSpecification.aspx
@@ -24,8 +24,8 @@ import (
 	"image"
 	"io"
 
-	"golang.org/x/image/font"
-	"golang.org/x/image/math/fixed"
+	"github.com/Limard/image/font"
+	"github.com/Limard/image/math/fixed"
 	"golang.org/x/text/encoding/charmap"
 )
 

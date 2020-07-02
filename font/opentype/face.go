@@ -7,9 +7,9 @@ package opentype
 import (
 	"image"
 
-	"golang.org/x/image/font"
-	"golang.org/x/image/font/sfnt"
-	"golang.org/x/image/math/fixed"
+	"github.com/Limard/image/font"
+	"github.com/Limard/image/font/sfnt"
+	"github.com/Limard/image/math/fixed"
 )
 
 // FaceOptions describes the possible options given to NewFace when

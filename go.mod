@@ -1,4 +1,4 @@
-module golang.org/x/image
+module github.com/Limard/image
 
 go 1.12
 
